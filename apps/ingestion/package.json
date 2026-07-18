@@ -1,0 +1,21 @@
+{
+  "name": "@obcda/ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Official-source ingestion: SourceAdapter contract, fetch guards, normalization pipeline (詳細設計仕様書 §4). Skeleton — concrete adapters land per-source.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@obcda/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
