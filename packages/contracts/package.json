@@ -1,0 +1,22 @@
+{
+  "name": "@obcda/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API contracts: Zod schemas and shared request/response types (詳細設計仕様書 §6.2/§7).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@obcda/domain": "workspace:*",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

@@ -1,0 +1,409 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-07-18T00:00:00Z",
+  "note": "開発・テスト用の公開サンプルデータ。公式ソース取り込み(ingestion)実装前の暫定シードであり、officialDefinition は再配布条件確認前のため保持しない(メタデータ+独自要約のみ)。",
+  "sources": [
+    {
+      "id": "018f0000-0000-7000-8000-000000000101",
+      "code": "BSI_IFC_SPEC",
+      "nameJa": "buildingSMART IFC Schema Specifications",
+      "publisher": "buildingSMART International",
+      "baseUrl": "https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/",
+      "sourceType": "schema",
+      "licenseStatus": "metadata_only",
+      "versions": [
+        {
+          "id": "018f0000-0000-7000-8000-000000000201",
+          "versionLabel": "IFC4.3.2.0",
+          "retrievedAt": "2026-07-18T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000102",
+      "code": "MLIT_BIMCIM_R8",
+      "nameJa": "国土交通省 BIM/CIM関連基準要領等（令和8年3月）",
+      "publisher": "国土交通省",
+      "baseUrl": "https://www.mlit.go.jp/tec/tec_fr_000184.html",
+      "sourceType": "web",
+      "licenseStatus": "metadata_only",
+      "versions": [
+        {
+          "id": "018f0000-0000-7000-8000-000000000202",
+          "versionLabel": "令和8年3月",
+          "retrievedAt": "2026-07-18T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000103",
+      "code": "BSI_OPENBIM",
+      "nameJa": "buildingSMART 公開標準（openBIM/IDS/BCF/bSDD）",
+      "publisher": "buildingSMART International",
+      "baseUrl": "https://technical.buildingsmart.org/",
+      "sourceType": "web",
+      "licenseStatus": "metadata_only",
+      "versions": [
+        {
+          "id": "018f0000-0000-7000-8000-000000000203",
+          "versionLabel": "2026-07",
+          "retrievedAt": "2026-07-18T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "concepts": [
+    {
+      "id": "018f0000-0000-7000-8000-000000000001",
+      "canonicalKey": "ifc4x3:entity:IfcAlignment",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcAlignment",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路・鉄道などの線形構造物で基準となる線形（アライメント）を表すエンティティです。平面線形・縦断線形・カントを組み合わせて位置の基準を定義します。",
+      "officialDefinition": null,
+      "technicalNoteJa": "IFC4.3 でインフラ対応のために導入されました。水平・縦断・カントの各線形は入れ子関係で保持されます。",
+      "commonMisunderstanding": "IfcAlignment は 3D 形状そのものではなく、位置決めの基準となる線形の定義です。",
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "IfcAlignment", "labelType": "preferred" },
+        { "language": "ja", "label": "線形", "labelType": "translation" },
+        { "language": "ja", "label": "アライメント", "labelType": "alternative" }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcLinearPositioningElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignmentHorizontal",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignmentVertical",
+          "relationType": "narrower"
+        },
+        { "targetKey": "ifc4x3:entity:IfcAlignmentCant", "relationType": "narrower" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000002",
+      "canonicalKey": "ifc4x3:entity:IfcAlignmentHorizontal",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcAlignmentHorizontal",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "線形のうち平面（水平方向）の経路を表すエンティティです。直線・円弧・緩和曲線などの区間で構成されます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcAlignmentHorizontal",
+          "labelType": "preferred"
+        },
+        { "language": "ja", "label": "平面線形", "labelType": "translation" },
+        { "language": "ja", "label": "水平線形", "labelType": "alternative" }
+      ],
+      "relations": [
+        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000003",
+      "canonicalKey": "ifc4x3:entity:IfcAlignmentVertical",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcAlignmentVertical",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "線形のうち縦断（高さ方向）の勾配・縦断曲線を表すエンティティです。平面線形に沿った距離程を基準に定義されます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "IfcAlignmentVertical", "labelType": "preferred" },
+        { "language": "ja", "label": "縦断線形", "labelType": "translation" }
+      ],
+      "relations": [
+        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000004",
+      "canonicalKey": "ifc4x3:entity:IfcAlignmentCant",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcAlignmentCant",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "鉄道などで軌道の横断勾配（カント）を表すエンティティです。曲線部での超過遠心力を打ち消すための傾きを距離程に沿って定義します。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "IfcAlignmentCant", "labelType": "preferred" },
+        { "language": "ja", "label": "カント", "labelType": "translation" }
+      ],
+      "relations": [
+        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000005",
+      "canonicalKey": "ifc4x3:entity:IfcLinearPositioningElement",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcLinearPositioningElement",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "線に沿った位置決めの基準を与える要素の抽象上位エンティティです。IfcAlignment はこのエンティティのサブタイプです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcLinearPositioningElement",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "narrower" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000006",
+      "canonicalKey": "ifc4x3:entity:IfcRoad",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcRoad",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路施設全体を表すエンティティです。IFC4.3 のインフラ拡張で追加され、道路を構成する部位や空間構造の起点になります。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "IfcRoad", "labelType": "preferred" },
+        { "language": "ja", "label": "道路", "labelType": "translation" }
+      ],
+      "relations": [
+        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "related" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000007",
+      "canonicalKey": "ifc4x3:entity:IfcBridge",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcBridge",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "橋梁施設全体を表すエンティティです。IFC4.3 のインフラ拡張で正式に位置づけられ、橋梁の部位・空間構造の起点になります。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "IfcBridge", "labelType": "preferred" },
+        { "language": "ja", "label": "橋梁", "labelType": "translation" }
+      ],
+      "relations": []
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000008",
+      "canonicalKey": "mlit_bimcim_r8:document_term:BIM/CIMモデル",
+      "conceptType": "document_term",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "BIM/CIMモデル",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "構造物の形状を三次元で表現した3次元モデルと、属性情報・参照資料を組み合わせたものを指す国内 BIM/CIM 運用上の用語です。",
+      "officialDefinition": null,
+      "technicalNoteJa": "定義の正確な文言・適用範囲は、対象案件に適用される版の要領・基準の原典を確認してください。",
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "ja", "label": "BIM/CIMモデル", "labelType": "preferred" }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:属性情報",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:詳細度",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000009",
+      "canonicalKey": "mlit_bimcim_r8:document_term:属性情報",
+      "conceptType": "document_term",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "属性情報",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "3次元モデルに付与する部材情報・数量・規格などの情報を指す国内 BIM/CIM 運用上の用語です。IFC のプロパティと文脈により対応関係が異なります。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": "IFC の Attribute（スキーマ上の属性）と国内要領の「属性情報」は範囲が一致しない場合があります。文脈と版を確認してください。",
+      "externalUri": null,
+      "labels": [
+        { "language": "ja", "label": "属性情報", "labelType": "preferred" },
+        {
+          "language": "en",
+          "label": "attribute information",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:BIM/CIMモデル",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000010",
+      "canonicalKey": "mlit_bimcim_r8:document_term:詳細度",
+      "conceptType": "document_term",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "詳細度",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "3次元モデルの形状表現の細かさの目安を示す国内 BIM/CIM 運用上の用語です。案件・工程ごとに求められる詳細度が定められます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": "海外の LOD (Level of Development / Level of Detail) と同一ではありません。版・文脈により定義が異なります。",
+      "externalUri": null,
+      "labels": [
+        { "language": "ja", "label": "詳細度", "labelType": "preferred" },
+        { "language": "en", "label": "LOD", "labelType": "abbreviation" }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:BIM/CIMモデル",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000011",
+      "canonicalKey": "bsi:term:openBIM",
+      "conceptType": "term",
+      "standardFamily": "OTHER",
+      "name": "openBIM",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "特定ベンダーに依存しないオープンな標準（IFC・IDS・BCF など）に基づいて BIM データを交換・共有する考え方です。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        { "language": "en", "label": "openBIM", "labelType": "preferred" },
+        { "language": "ja", "label": "オープンBIM", "labelType": "translation" }
+      ],
+      "relations": [
+        { "targetKey": "ids1:term:IDS", "relationType": "related" },
+        { "targetKey": "bcf3:term:BCF", "relationType": "related" },
+        { "targetKey": "bsdd:term:bSDD", "relationType": "related" }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000012",
+      "canonicalKey": "ids1:term:IDS",
+      "conceptType": "term",
+      "standardFamily": "IDS",
+      "name": "IDS",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "Information Delivery Specification。BIM データに求める情報要件（必要な属性・分類・値の条件など）を機械可読な形式で記述する buildingSMART の標準です。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Information Delivery Specification",
+          "labelType": "preferred"
+        },
+        { "language": "en", "label": "IDS", "labelType": "abbreviation" },
+        { "language": "ja", "label": "情報要件定義", "labelType": "translation" }
+      ],
+      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000013",
+      "canonicalKey": "bcf3:term:BCF",
+      "conceptType": "term",
+      "standardFamily": "BCF",
+      "name": "BCF",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "BIM Collaboration Format。モデルに関する指摘・課題をツール間でやり取りするための buildingSMART の標準フォーマットです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "BIM Collaboration Format",
+          "labelType": "preferred"
+        },
+        { "language": "en", "label": "BCF", "labelType": "abbreviation" }
+      ],
+      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000014",
+      "canonicalKey": "bsdd:term:bSDD",
+      "conceptType": "term",
+      "standardFamily": "BSDD",
+      "name": "bSDD",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "buildingSMART Data Dictionary。分類体系やプロパティの定義を安定 URI で公開・参照できる buildingSMART のオンライン辞書サービスです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": "https://identifier.buildingsmart.org/",
+      "labels": [
+        {
+          "language": "en",
+          "label": "buildingSMART Data Dictionary",
+          "labelType": "preferred"
+        },
+        { "language": "en", "label": "bSDD", "labelType": "abbreviation" }
+      ],
+      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+    }
+  ]
+}

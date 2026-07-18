@@ -7,7 +7,7 @@ language: "ja-JP"
 early_access: false
 
 reviews:
-  profile: "chill"  # nitpicky に近いが過剰指摘を抑える
+  profile: "chill" # nitpicky に近いが過剰指摘を抑える
   request_changes_workflow: false
 
   # 重大度別の対応規則を ClaudeOS §8.5 と揃える
@@ -19,7 +19,7 @@ reviews:
   # 自動レビュー範囲
   auto_review:
     enabled: true
-    drafts: false  # Draft PR はスキップ
+    drafts: false # Draft PR はスキップ
     base_branches:
       - main
       - master
@@ -108,7 +108,7 @@ reviews:
     hadolint:
       enabled: true
     languagetool:
-      enabled: false  # 日本語誤検知が多いため停止
+      enabled: false # 日本語誤検知が多いため停止
     markdownlint:
       enabled: true
     ruff:
