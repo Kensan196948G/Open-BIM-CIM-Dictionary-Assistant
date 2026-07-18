@@ -11,6 +11,7 @@ import type {
   SearchQuery,
   SearchResultItem,
   SourceSummary,
+  SourceVersionSummary,
 } from "@obcda/contracts";
 
 export type SearchOutcome = {
@@ -23,6 +24,8 @@ export interface DictionaryRepository {
   getConceptById(id: string): Promise<ConceptDetail | null>;
   getRelations(conceptId: string): Promise<ConceptRelation[] | null>;
   listSources(): Promise<SourceSummary[]>;
+  /** null when the source id is unknown (vs. an empty version list). */
+  getSourceVersions(sourceId: string): Promise<SourceVersionSummary[] | null>;
   /** Readiness probe — false when the backing store is unavailable. */
   isReady(): Promise<boolean>;
 }
