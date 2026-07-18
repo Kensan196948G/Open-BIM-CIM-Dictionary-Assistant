@@ -6,24 +6,29 @@ import { errorResponse } from "./middleware/errors";
 import { requestId } from "./middleware/requestId";
 import { securityHeaders } from "./middleware/securityHeaders";
 import type { DictionaryRepository } from "./repositories/types";
+import { auditTrail } from "./middleware/audit";
 import { createAssistantRoutes } from "./routes/assistant";
 import { compareRoutes } from "./routes/compare";
 import { conceptRoutes } from "./routes/concepts";
 import { healthRoutes } from "./routes/health";
 import { searchRoutes } from "./routes/search";
 import { sourceRoutes } from "./routes/sources";
+import { createSystemRoutes } from "./routes/system";
+import { InMemoryAuditLog, type AuditLog } from "./services/auditLog";
 import { NoopLlmProvider, type LlmProvider } from "./services/llm";
 
 const DEV_ORIGIN = "http://localhost:5173";
 
 export type AppOptions = {
   llmProvider?: LlmProvider;
+  auditLog?: AuditLog;
 };
 
 /** Compose the API with an injected repository (fixtures now, Neon later). */
 export function createApp(repository: DictionaryRepository, options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
   const llmProvider = options.llmProvider ?? new NoopLlmProvider();
+  const auditLog = options.auditLog ?? new InMemoryAuditLog();
 
   app.use("*", requestId());
   app.use("*", securityHeaders());
@@ -44,12 +49,14 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
     c.set("repository", repository);
     await next();
   });
+  app.use("/api/*", auditTrail(auditLog));
 
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);
   app.route("/api/v1/compare", compareRoutes);
   app.route("/api/v1/assistant", createAssistantRoutes(llmProvider));
   app.route("/api/v1/sources", sourceRoutes);
+  app.route("/api/v1/system", createSystemRoutes(auditLog, llmProvider.id));
   app.route("/api/v1/health", healthRoutes);
 
   app.notFound((c) => errorResponse(c, "NOT_FOUND", "リソースが見つかりません。"));

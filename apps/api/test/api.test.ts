@@ -1,5 +1,6 @@
 import {
   AssistantAnswerSchema,
+  AuditEventsResponseSchema,
   CompareResponseSchema,
   ConceptDetailResponseSchema,
   ConceptRelationsResponseSchema,
@@ -8,6 +9,7 @@ import {
   SearchResultItemSchema,
   SourcesResponseSchema,
   SourceVersionsResponseSchema,
+  SystemInfoResponseSchema,
 } from "@obcda/contracts";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -304,5 +306,44 @@ describe("POST /api/v1/assistant/answers", () => {
   it("accepts long questions by truncating the retrieval query (no 500)", async () => {
     const { res } = await ask(`IfcAlignment ${"あ".repeat(600)}`);
     expect(res.status).toBe(200);
+  });
+});
+
+describe("GET /api/v1/system/info", () => {
+  it("reports runtime facts and dictionary counts", async () => {
+    const { res, body } = await getJson("/api/v1/system/info");
+    expect(res.status).toBe(200);
+    const parsed = SystemInfoResponseSchema.parse(body);
+    expect(parsed.data.environment).toBe("fixtures");
+    expect(parsed.data.llmProvider).toBe("noop");
+    expect(parsed.data.counts.concepts).toBeGreaterThan(0);
+    expect(parsed.data.counts.publishedConcepts).toBeLessThanOrEqual(
+      parsed.data.counts.concepts,
+    );
+    expect(parsed.data.counts.sources).toBe(3);
+  });
+});
+
+describe("GET /api/v1/system/audit-events", () => {
+  it("records API requests without query strings (privacy §8.3)", async () => {
+    await getJson("/api/v1/search?q=secret-search-term");
+    const { res, body } = await getJson("/api/v1/system/audit-events?limit=50");
+    expect(res.status).toBe(200);
+    const parsed = AuditEventsResponseSchema.parse(body);
+    const searchEvents = parsed.data.filter((e) => e.path === "/api/v1/search");
+    expect(searchEvents.length).toBeGreaterThan(0);
+    // the recorded path must never contain the query string
+    expect(JSON.stringify(parsed.data)).not.toContain("secret-search-term");
+    // the audit-read endpoint itself is not recorded
+    expect(parsed.data.some((e) => e.path === "/api/v1/system/audit-events")).toBe(
+      false,
+    );
+  });
+
+  it("rejects out-of-range limits", async () => {
+    const { res } = await getJson("/api/v1/system/audit-events?limit=0");
+    expect(res.status).toBe(400);
+    const big = await getJson("/api/v1/system/audit-events?limit=501");
+    expect(big.res.status).toBe(400);
   });
 });
