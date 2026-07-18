@@ -54,9 +54,17 @@ const tsvector = customType<{ data: string }>({
 });
 
 /** pgvector column — dimension is fixed in SQL once the embedding model is chosen (§3.2). */
-const pgvector = customType<{ data: number[] }>({
+const pgvector = customType<{ data: number[]; driverData: string }>({
   dataType() {
     return "vector";
+  },
+  // pgvector wire format is "[0.1,0.2,...]"
+  toDriver(value: number[]): string {
+    return `[${value.join(",")}]`;
+  },
+  fromDriver(value: string): number[] {
+    const inner = value.slice(1, -1).trim();
+    return inner.length === 0 ? [] : inner.split(",").map(Number);
   },
 });
 
@@ -154,6 +162,10 @@ export const sourceVersions = pgTable(
       table.versionLabel,
       table.contentHash,
     ),
+    check(
+      "source_versions_effective_range",
+      sql`${table.effectiveFrom} IS NULL OR ${table.effectiveTo} IS NULL OR ${table.effectiveFrom} <= ${table.effectiveTo}`,
+    ),
   ],
 );
 
@@ -209,6 +221,10 @@ export const conceptVersions = pgTable(
     check(
       "concept_versions_quality_range",
       sql`${table.qualityScore} IS NULL OR (${table.qualityScore} >= 0 AND ${table.qualityScore} <= 100)`,
+    ),
+    check(
+      "concept_versions_valid_range",
+      sql`${table.validFrom} IS NULL OR ${table.validTo} IS NULL OR ${table.validFrom} <= ${table.validTo}`,
     ),
   ],
 );
@@ -315,6 +331,13 @@ export const ifcAttributes = pgTable(
     check(
       "ifc_attributes_cardinality_order",
       sql`${table.cardinalityMin} IS NULL OR ${table.cardinalityMax} IS NULL OR ${table.cardinalityMin} <= ${table.cardinalityMax}`,
+    ),
+    check("ifc_attributes_ordinal_range", sql`${table.ordinal} >= 0`),
+    // display order is unique per attribute kind (explicit/derived/inverse)
+    uniqueIndex("ifc_attributes_owner_kind_ordinal_uq").on(
+      table.ownerConceptId,
+      table.attributeKind,
+      table.ordinal,
     ),
   ],
 );

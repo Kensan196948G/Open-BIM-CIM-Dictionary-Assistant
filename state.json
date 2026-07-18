@@ -7,14 +7,26 @@
     "phase_mode": "development"
   },
   "goal": "MVP Phase 1: モノレポ基盤 + domain/contracts/db + 検索API(fixtures) + 最小UI + CI を実装し PR 作成",
-  "phase": "Verify",
+  "phase": "Review",
   "kpi": {
     "success_rate_target": 0.9,
-    "ci_success_rate": 0.0,
+    "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 62,
+    "test_count": 64,
     "security_critical": 0,
     "blocker_count": 0
+  },
+  "review": {
+    "coderabbit_rounds": 2,
+    "coderabbit_findings_total": 18,
+    "coderabbit_findings_fixed": 18,
+    "critical_high_open": 0
+  },
+  "pr": {
+    "number": 8,
+    "url": "https://github.com/Kensan196948G/Open-BIM-CIM-Dictionary-Assistant/pull/8",
+    "target": "main",
+    "merge_requires_human": true
   },
   "execution": {
     "max_duration_minutes": 300,

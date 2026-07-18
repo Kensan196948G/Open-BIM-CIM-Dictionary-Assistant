@@ -59,7 +59,9 @@ CREATE TABLE source_versions (
   etag           text,
   last_modified  text,
   status         source_version_status NOT NULL DEFAULT 'detected',
-  metadata       jsonb
+  metadata       jsonb,
+  CONSTRAINT source_versions_effective_range
+    CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to)
 );
 CREATE UNIQUE INDEX source_versions_source_label_hash_uq
   ON source_versions (source_id, version_label, content_hash);
@@ -98,7 +100,9 @@ CREATE TABLE concept_versions (
     setweight(to_tsvector('simple', coalesce(official_definition, '')), 'C') ||
     setweight(to_tsvector('simple', coalesce(technical_note_ja, '')), 'D')
   ) STORED,
-  CONSTRAINT concept_versions_concept_source_uq UNIQUE (concept_id, source_version_id)
+  CONSTRAINT concept_versions_concept_source_uq UNIQUE (concept_id, source_version_id),
+  CONSTRAINT concept_versions_valid_range
+    CHECK (valid_from IS NULL OR valid_to IS NULL OR valid_from <= valid_to)
 );
 CREATE INDEX concept_versions_status_idx ON concept_versions (status);
 CREATE INDEX concept_versions_search_idx ON concept_versions USING GIN (search_document);
@@ -159,7 +163,10 @@ CREATE TABLE ifc_attributes (
       cardinality_min IS NULL
       OR cardinality_max IS NULL
       OR cardinality_min <= cardinality_max
-    )
+    ),
+  CONSTRAINT ifc_attributes_ordinal_range CHECK (ordinal >= 0),
+  -- display order is unique per attribute kind (explicit/derived/inverse form separate sequences)
+  CONSTRAINT ifc_attributes_owner_kind_ordinal_uq UNIQUE (owner_concept_id, attribute_kind, ordinal)
 );
 CREATE INDEX ifc_attributes_owner_idx ON ifc_attributes (owner_concept_id);
 
