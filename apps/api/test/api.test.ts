@@ -300,4 +300,9 @@ describe("POST /api/v1/assistant/answers", () => {
     const { res } = await ask("   ");
     expect(res.status).toBe(400);
   });
+
+  it("accepts long questions by truncating the retrieval query (no 500)", async () => {
+    const { res } = await ask(`IfcAlignment ${"あ".repeat(600)}`);
+    expect(res.status).toBe(200);
+  });
 });

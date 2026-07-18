@@ -6,7 +6,9 @@ compatibility_date = "2026-07-01"
 
 # Secrets (never in this file): DATABASE_URL, LLM_API_KEY → `wrangler secret put`
 [vars]
-# CORS allowlist for the web origin; set to the Pages URL in production.
+# CORS allowlist for the web origin.
+# ⚠️ MUST be overridden to the production Pages URL before deploying —
+# the localhost default breaks CORS for the real web origin (docs/DEPLOYMENT.md §3.1).
 ALLOWED_ORIGIN = "http://localhost:5173"
 
 [observability]

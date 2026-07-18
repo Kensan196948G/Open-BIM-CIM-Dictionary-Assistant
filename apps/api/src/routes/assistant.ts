@@ -48,7 +48,12 @@ export function createAssistantRoutes(provider: LlmProvider) {
     }
 
     // §6.1: the question becomes a search; retrieved items are the grounding.
-    const query = SearchQuerySchema.parse({ q: parsed.data.question, limit: "5" });
+    // Questions may be up to 1000 chars while search q caps at 200 — truncate
+    // for retrieval instead of erroring (the provider still sees the full text).
+    const query = SearchQuerySchema.parse({
+      q: parsed.data.question.slice(0, 200),
+      limit: "5",
+    });
     const outcome = await c.get("repository").search(query);
 
     let answer: AssistantAnswer;
@@ -78,8 +83,12 @@ export function createAssistantRoutes(provider: LlmProvider) {
       claim.evidenceIds.some((id) => !allowedIds.has(id)),
     );
     if (hasUnknownCitation) {
+      // Discard the free-text answer too: prose from a provider that fabricated
+      // citations is untrustworthy even with the claims stripped.
       answer = {
-        ...answer,
+        answer:
+          "回答に検証できない引用が含まれていたため、内容を保留しました。下記の根拠候補と原典をご確認ください。",
+        explanationLevel: answer.explanationLevel,
         claims: [],
         insufficientEvidence: true,
         caveats: [
