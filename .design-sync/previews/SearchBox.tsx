@@ -1,8 +1,6 @@
 import { SearchBox } from "@obcda/ui";
 
-export const Default = () => (
-  <SearchBox onSearch={(q) => console.log("search:", q)} />
-);
+export const Default = () => <SearchBox onSearch={(q) => console.log("search:", q)} />;
 
 export const WithInitialQuery = () => (
   <SearchBox initialQuery="IfcAlignment" onSearch={() => {}} />

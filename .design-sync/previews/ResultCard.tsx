@@ -18,9 +18,7 @@ export const JapaneseTerm = () => (
   />
 );
 
-export const Minimal = () => (
-  <ResultCard name="IfcRoad" badges={["IFC", "entity"]} />
-);
+export const Minimal = () => <ResultCard name="IfcRoad" badges={["IFC", "entity"]} />;
 
 export const ResultList = () => (
   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
