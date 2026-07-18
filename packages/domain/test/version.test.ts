@@ -35,6 +35,12 @@ describe("parseIfcVersionLabel", () => {
     expect(parseIfcVersionLabel("IFC")).toBeNull();
     expect(parseIfcVersionLabel("IFX4.3")).toBeNull();
   });
+
+  it("rejects malformed labels with empty version segments", () => {
+    expect(parseIfcVersionLabel("IFC4..3")).toBeNull();
+    expect(parseIfcVersionLabel("IFC4xx3")).toBeNull();
+    expect(parseIfcVersionLabel("IFC4.")).toBeNull();
+  });
 });
 
 describe("compareIfcVersions", () => {

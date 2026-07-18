@@ -14,7 +14,11 @@ export const requestId = (): MiddlewareHandler<AppEnv> => {
     const id =
       incoming && REQUEST_ID_RE.test(incoming) ? incoming : crypto.randomUUID();
     c.set("requestId", id);
-    await next();
-    c.header("X-Request-Id", id);
+    try {
+      await next();
+    } finally {
+      // set even when a downstream handler throws so error responses stay correlatable
+      c.header("X-Request-Id", id);
+    }
   };
 };

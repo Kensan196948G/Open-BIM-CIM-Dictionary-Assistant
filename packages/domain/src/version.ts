@@ -39,7 +39,8 @@ export function parseIfcVersionLabel(label: string): IfcVersion | null {
     .replace(/\s+/gu, "")
     // schema spelling: 4x3 → 4.3
     .replace(/x/gu, ".");
-  const segments = digits.split(".").filter((segment) => segment.length > 0);
+  // empty segments mean a malformed label (IFC4..3, IFC4xx3, IFC4.) — reject
+  const segments = digits.split(".");
   if (segments.length === 0) return null;
   const parts: number[] = [];
   for (const segment of segments) {

@@ -20,18 +20,18 @@ import { z } from "zod";
 
 import fixtureJson from "../../../fixtures/concepts.sample.json";
 
-const FixtureLabelSchema = z.object({
+const FixtureLabelSchema = z.strictObject({
   language: z.string().min(2).max(10),
   label: z.string().min(1),
   labelType: z.enum(LABEL_TYPES),
 });
 
-const FixtureRelationSchema = z.object({
+const FixtureRelationSchema = z.strictObject({
   targetKey: z.string().min(1),
   relationType: z.enum(RELATION_TYPES),
 });
 
-const FixtureConceptSchema = z.object({
+const FixtureConceptSchema = z.strictObject({
   id: z.uuid(),
   canonicalKey: z.string().min(1),
   conceptType: z.enum(CONCEPT_TYPES),
@@ -49,13 +49,13 @@ const FixtureConceptSchema = z.object({
   relations: z.array(FixtureRelationSchema),
 });
 
-const FixtureSourceVersionSchema = z.object({
+const FixtureSourceVersionSchema = z.strictObject({
   id: z.uuid(),
   versionLabel: z.string().min(1),
   retrievedAt: z.iso.datetime(),
 });
 
-const FixtureSourceSchema = z.object({
+const FixtureSourceSchema = z.strictObject({
   id: z.uuid(),
   code: z.string().min(1),
   nameJa: z.string().min(1),
@@ -66,7 +66,7 @@ const FixtureSourceSchema = z.object({
   versions: z.array(FixtureSourceVersionSchema).min(1),
 });
 
-const DictionaryFixtureSchema = z.object({
+const DictionaryFixtureSchema = z.strictObject({
   schemaVersion: z.string(),
   generatedAt: z.iso.datetime(),
   note: z.string(),

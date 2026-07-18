@@ -83,9 +83,14 @@ export function versionMatchesFilter(
   const filterIfc = parseIfcVersionLabel(filterLabel);
   const versionIfc = parseIfcVersionLabel(versionLabel);
   if (filterIfc && versionIfc) {
-    return filterIfc.parts.every(
+    const partsMatch = filterIfc.parts.every(
       (part, index) => (versionIfc.parts[index] ?? 0) === part,
     );
+    if (!partsMatch) return false;
+    // an addendum-bearing filter (IFC4 ADD2) selects only that addendum;
+    // an addendum-free filter keeps prefix semantics and matches both
+    if (filterIfc.addendum) return versionIfc.addendum === filterIfc.addendum;
+    return true;
   }
   return versionLabelsEqual(versionLabel, filterLabel);
 }
