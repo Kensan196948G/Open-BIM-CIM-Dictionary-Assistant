@@ -28,14 +28,15 @@ export function createApp(repository: DictionaryRepository) {
 
   app.notFound((c) => errorResponse(c, "NOT_FOUND", "リソースが見つかりません。"));
   app.onError((error, c) => {
-    // Structured log without secrets/PII (§12.1); stack stays server-side.
+    // Structured log without secrets/PII (§12.1): error class only — raw
+    // message/stack may embed request data and stays out of logs.
     console.error(
       JSON.stringify({
         level: "error",
         service: "api",
         event: "request.failed",
         requestId: c.get("requestId") ?? "unknown",
-        message: error.message,
+        errorName: error instanceof Error ? error.name : "UnknownError",
       }),
     );
     return errorResponse(c, "INTERNAL_ERROR", "サーバー内部エラーが発生しました。");

@@ -149,7 +149,17 @@ CREATE TABLE ifc_attributes (
   cardinality_min  integer,
   cardinality_max  integer,
   ordinal          integer NOT NULL,
-  definition       text
+  definition       text,
+  CONSTRAINT ifc_attributes_cardinality_min_range
+    CHECK (cardinality_min IS NULL OR cardinality_min >= 0),
+  CONSTRAINT ifc_attributes_cardinality_max_range
+    CHECK (cardinality_max IS NULL OR cardinality_max >= 0),
+  CONSTRAINT ifc_attributes_cardinality_order
+    CHECK (
+      cardinality_min IS NULL
+      OR cardinality_max IS NULL
+      OR cardinality_min <= cardinality_max
+    )
 );
 CREATE INDEX ifc_attributes_owner_idx ON ifc_attributes (owner_concept_id);
 
@@ -173,7 +183,9 @@ CREATE TABLE embeddings (
   model_id          text NOT NULL,
   dimension         integer NOT NULL,
   embedding         vector NOT NULL,
-  created_at        timestamptz NOT NULL DEFAULT now()
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT embeddings_dimension_positive CHECK (dimension > 0),
+  CONSTRAINT embeddings_dimension_matches CHECK (dimension = vector_dims(embedding))
 );
 -- HNSW index is created in a later migration once the embedding dimension is
 -- fixed (pgvector requires typed dimensions for HNSW).

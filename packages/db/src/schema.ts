@@ -21,9 +21,11 @@ import {
   STANDARD_FAMILIES,
   TRUST_LEVELS,
 } from "@obcda/domain";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   char,
+  check,
   customType,
   date,
   index,
@@ -192,8 +194,10 @@ export const conceptVersions = pgTable(
     reviewedBy: text("reviewed_by"),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     qualityScore: numeric("quality_score", { precision: 5, scale: 2 }),
-    /** DB-generated FTS document (§5.1) — see 0001_init.sql. */
-    searchDocument: tsvector("search_document"),
+    /** Weighted FTS document (§5.1): name > summary > definition/notes. */
+    searchDocument: tsvector("search_document").generatedAlwaysAs(
+      sql`setweight(to_tsvector('simple', coalesce(official_name, '')), 'A') || setweight(to_tsvector('simple', coalesce(summary_ja, '')), 'B') || setweight(to_tsvector('simple', coalesce(official_definition, '')), 'C') || setweight(to_tsvector('simple', coalesce(technical_note_ja, '')), 'D')`,
+    ),
   },
   (table) => [
     uniqueIndex("concept_versions_concept_source_uq").on(
@@ -201,6 +205,11 @@ export const conceptVersions = pgTable(
       table.sourceVersionId,
     ),
     index("concept_versions_status_idx").on(table.status),
+    index("concept_versions_search_idx").using("gin", table.searchDocument),
+    check(
+      "concept_versions_quality_range",
+      sql`${table.qualityScore} IS NULL OR (${table.qualityScore} >= 0 AND ${table.qualityScore} <= 100)`,
+    ),
   ],
 );
 
@@ -220,6 +229,10 @@ export const termLabels = pgTable(
   (table) => [
     index("term_labels_concept_idx").on(table.conceptId),
     index("term_labels_normalized_idx").on(table.normalizedLabel),
+    index("term_labels_normalized_trgm_idx").using(
+      "gin",
+      table.normalizedLabel.op("gin_trgm_ops"),
+    ),
   ],
 );
 
@@ -251,6 +264,10 @@ export const conceptRelations = pgTable(
       ],
     }),
     index("concept_relations_target_idx").on(table.targetConceptId),
+    check(
+      "concept_relations_confidence_range",
+      sql`${table.confidence} IS NULL OR (${table.confidence} >= 0 AND ${table.confidence} <= 1)`,
+    ),
   ],
 );
 
@@ -262,7 +279,7 @@ export const ifcMembers = pgTable("ifc_members", {
   memberKind: ifcMemberKindEnum("member_kind").notNull(),
   schemaName: text("schema_name"),
   isAbstract: boolean("is_abstract").notNull().default(false),
-  supertypeConceptId: uuid("supertype_concept_id"),
+  supertypeConceptId: uuid("supertype_concept_id").references(() => concepts.id),
   expressDeclaration: text("express_declaration"),
   deprecationState: deprecationStateEnum("deprecation_state")
     .notNull()
@@ -285,7 +302,21 @@ export const ifcAttributes = pgTable(
     ordinal: integer("ordinal").notNull(),
     definition: text("definition"),
   },
-  (table) => [index("ifc_attributes_owner_idx").on(table.ownerConceptId)],
+  (table) => [
+    index("ifc_attributes_owner_idx").on(table.ownerConceptId),
+    check(
+      "ifc_attributes_cardinality_min_range",
+      sql`${table.cardinalityMin} IS NULL OR ${table.cardinalityMin} >= 0`,
+    ),
+    check(
+      "ifc_attributes_cardinality_max_range",
+      sql`${table.cardinalityMax} IS NULL OR ${table.cardinalityMax} >= 0`,
+    ),
+    check(
+      "ifc_attributes_cardinality_order",
+      sql`${table.cardinalityMin} IS NULL OR ${table.cardinalityMax} IS NULL OR ${table.cardinalityMin} <= ${table.cardinalityMax}`,
+    ),
+  ],
 );
 
 export const evidenceChunks = pgTable(
@@ -310,15 +341,25 @@ export const evidenceChunks = pgTable(
   ],
 );
 
-export const embeddings = pgTable("embeddings", {
-  evidenceChunkId: uuid("evidence_chunk_id")
-    .primaryKey()
-    .references(() => evidenceChunks.id),
-  modelId: text("model_id").notNull(),
-  dimension: integer("dimension").notNull(),
-  embedding: pgvector("embedding").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const embeddings = pgTable(
+  "embeddings",
+  {
+    evidenceChunkId: uuid("evidence_chunk_id")
+      .primaryKey()
+      .references(() => evidenceChunks.id),
+    modelId: text("model_id").notNull(),
+    dimension: integer("dimension").notNull(),
+    embedding: pgvector("embedding").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("embeddings_dimension_positive", sql`${table.dimension} > 0`),
+    check(
+      "embeddings_dimension_matches",
+      sql`${table.dimension} = vector_dims(${table.embedding})`,
+    ),
+  ],
+);
 
 // ---------------------------------------------------------------------------
 // audit / job tables (§3.3)

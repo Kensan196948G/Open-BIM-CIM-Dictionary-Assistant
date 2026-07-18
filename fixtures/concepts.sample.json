@@ -327,9 +327,9 @@
         { "language": "ja", "label": "オープンBIM", "labelType": "translation" }
       ],
       "relations": [
-        { "targetKey": "ids1:term:IDS", "relationType": "related" },
-        { "targetKey": "bcf3:term:BCF", "relationType": "related" },
-        { "targetKey": "bsdd:term:bSDD", "relationType": "related" }
+        { "targetKey": "ids1:term:IDS", "relationType": "narrower" },
+        { "targetKey": "bcf3:term:BCF", "relationType": "narrower" },
+        { "targetKey": "bsdd:term:bSDD", "relationType": "narrower" }
       ]
     },
     {

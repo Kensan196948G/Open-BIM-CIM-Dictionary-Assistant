@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type SearchBoxProps = {
@@ -10,6 +10,11 @@ type SearchBoxProps = {
 export function SearchBox({ initialQuery = "", autoFocus = false }: SearchBoxProps) {
   const [query, setQuery] = useState(initialQuery);
   const navigate = useNavigate();
+
+  // keep the input in sync when the route's q changes (e.g. back/forward)
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   return (
     <form
