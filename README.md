@@ -2,7 +2,8 @@
 
 > **BIM/CIM、IFC、属性情報、公開仕様を「探せる・分かる・根拠へ戻れる」辞書型Webアシスタント**
 
-[![Status](https://img.shields.io/badge/status-planning-blue)](#-開発ステータス)
+[![Status](https://img.shields.io/badge/status-MVP%20in%20development-brightgreen)](#-開発ステータス)
+[![CI](https://github.com/Kensan196948G/Open-BIM-CIM-Dictionary-Assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Kensan196948G/Open-BIM-CIM-Dictionary-Assistant/actions/workflows/ci.yml)
 [![Data](https://img.shields.io/badge/data-public%20sources-success)](#-データ方針)
 [![IFC](https://img.shields.io/badge/IFC-4.3-orange)](#-収録対象)
 [![License](https://img.shields.io/badge/license-TBD-lightgrey)](#-ライセンス)
@@ -256,32 +257,31 @@ LLM_MODEL=
 LLM_API_KEY=
 ```
 
-### 4. DB
+### 4. DB（任意 — MVP は fixtures で動作）
+
+現時点の API は `fixtures/concepts.sample.json` ベースの in-memory repository で動作し、DB なしで起動できます。Neon を使う場合は `migrations/0001_init.sql` を適用してください（Drizzle 接続は後続 Issue）。
+
+### 5. 起動（開発）
 
 ```bash
-pnpm db:migrate
-pnpm db:seed
-```
+# API (http://localhost:8787)
+pnpm --filter @obcda/api dev
 
-Seedには公開サンプルとテスト専用データだけを使用します。
-
-### 5. 起動
-
-```bash
-pnpm dev
+# Web (http://localhost:5173 — /api は API へプロキシ)
+pnpm --filter @obcda/web dev
 ```
 
 ### 6. 品質確認
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm test:e2e
-pnpm build
+pnpm format      # Prettier チェック
+pnpm lint        # ESLint
+pnpm typecheck   # 全 workspace の tsc --noEmit
+pnpm test        # Vitest（domain はカバレッジ閾値 90% 付き）
+pnpm build       # Web 本番ビルド
 ```
 
-> コマンドは実装時の最終構成に合わせて更新します。現時点では設計上の予定です。
+> E2E（Playwright）とアクセシビリティ自動試験は後続 Issue で追加予定です。
 
 ## 🌍 環境
 
@@ -389,9 +389,22 @@ flowchart LR
 | 構想 | ✅ |
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
-| 実装 | ⏳ 未着手 |
-| 検証 | ⏳ 未着手 |
+| 実装 | 🔨 MVP 基盤実装中 |
+| 検証 | 🔨 単体・統合テスト 62 件 / CI 稼働 |
 | 公開 | ⏳ 未着手 |
+
+### 🧱 実装済みコンポーネント（2026-07-18 時点）
+
+| コンポーネント | 状態 | 内容 |
+| --- | --- | --- |
+| `packages/domain` | ✅ | ラベル正規化（NFC/NFKC・全半角・長音・中点・ハイフン吸収）、canonical key、IFC 版・和暦版パース。テスト 37 件、branch カバレッジ 90% 超 |
+| `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・エラー・AI 回答） |
+| `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql`（FTS 生成列・pg_trgm・pgvector） |
+| `apps/api` | ✅ | Hono 検索・辞書 API（fixtures ベース。検索/詳細/関連/出典/ヘルス）。テスト 17 件 |
+| `apps/web` | ✅ | ホーム・検索結果・用語詳細（React + Vite + Tailwind、WCAG 配慮） |
+| `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
+| CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + 依存監査） |
+| Neon 接続・取り込み・AI 回答 | ⏳ | 後続 Issue（repository ポート差し替えで対応） |
 
 ## ⚠️ 免責
 

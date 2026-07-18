@@ -7,11 +7,12 @@
     "phase_mode": "development"
   },
   "goal": "MVP Phase 1: モノレポ基盤 + domain/contracts/db + 検索API(fixtures) + 最小UI + CI を実装し PR 作成",
-  "phase": "Build",
+  "phase": "Verify",
   "kpi": {
     "success_rate_target": 0.9,
     "ci_success_rate": 0.0,
-    "test_pass_rate": 0.0,
+    "test_pass_rate": 1.0,
+    "test_count": 62,
     "security_critical": 0,
     "blocker_count": 0
   },
@@ -31,7 +32,13 @@
   "completed_issues": [],
   "blocked_issues": [],
   "learning": {
-    "failure_patterns": [],
-    "success_patterns": []
+    "failure_patterns": [
+      "ポート8787は開発機で既使用 — スモークテストはPORT環境変数で回避"
+    ],
+    "success_patterns": [
+      "enum を domain の as const タプルに集約し Zod/Drizzle が共有参照する構成",
+      "repository を interface 化し fixtures ベースで DB なし統合テスト 17 件を成立",
+      "Turborepo Just-in-Time パッケージ（exports に TS ソース直指定・ビルドレス）"
+    ]
   }
 }
