@@ -48,6 +48,39 @@ jobs:
       - name: Build
         run: pnpm build
 
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @obcda/web exec playwright install --with-deps chromium
+
+      - name: Run E2E
+        run: pnpm --filter @obcda/web test:e2e
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: apps/web/test-results/
+          retention-days: 7
+
   audit:
     name: dependency audit
     runs-on: ubuntu-latest
