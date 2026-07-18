@@ -22,7 +22,10 @@ test("search 線形 → open IfcAlignment detail → provenance shown", async ({
   await input.fill("線形");
   await input.press("Enter");
 
-  await expect(page).toHaveURL(/\/search\?q=/);
+  // the query must survive URL-encoding round-trip as 線形
+  await expect(page).toHaveURL(
+    new RegExp(`/search\\?q=${encodeURIComponent("線形")}$`),
+  );
   const resultLink = page.getByRole("link", { name: /IfcAlignment IFC entity/ });
   await expect(resultLink.first()).toBeVisible();
 
@@ -43,9 +46,19 @@ test("search 線形 → open IfcAlignment detail → provenance shown", async ({
     name: /technical\.buildingsmart\.org/,
   });
   await expect(sourceLink).toHaveAttribute("rel", /noopener/);
+  await expect(sourceLink).toHaveAttribute(
+    "href",
+    /^https:\/\/technical\.buildingsmart\.org\//,
+  );
+  await expect(sourceLink).toHaveAttribute("target", "_blank");
 
-  // related concepts navigate within the dictionary
+  // related concepts navigate within the dictionary — follow one and verify
   await expect(page.getByRole("heading", { name: /関連する概念/ })).toBeVisible();
+  await page.getByRole("link", { name: "IfcAlignmentHorizontal", exact: true }).click();
+  await expect(page).toHaveURL(/\/concepts\//);
+  await expect(
+    page.getByRole("heading", { name: "IfcAlignmentHorizontal", exact: true }),
+  ).toBeVisible();
 });
 
 test("zero-result search shows guidance instead of an empty page", async ({ page }) => {
