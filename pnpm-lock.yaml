@@ -120,8 +120,8 @@ importers:
         specifier: workspace:*
         version: link:../domain
       drizzle-orm:
-        specifier: ^0.44.0
-        version: 0.44.7
+        specifier: ^0.45.2
+        version: 0.45.2
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -999,8 +999,8 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
-  drizzle-orm@0.44.7:
-    resolution: {integrity: sha512-quIpnYznjU9lHshEOAYLoZ9s3jweleHlZIAWR/jX9gAWNg/JhQ1wj0KGRf7/Zm+obRrYd9GjPVJg790QY9N5AQ==}
+  drizzle-orm@0.45.2:
+    resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -2603,7 +2603,7 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
-  drizzle-orm@0.44.7: {}
+  drizzle-orm@0.45.2: {}
 
   eastasianwidth@0.2.0: {}
 
