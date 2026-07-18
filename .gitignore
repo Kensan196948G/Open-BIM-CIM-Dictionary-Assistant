@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+.turbo/
+coverage/
+.wrangler/
+
+# environment — never commit real values (.env.example only)
+.env
+.env.*
+!.env.example
+
+# editor / OS
+.DS_Store
+*.local
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log

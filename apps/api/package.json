@@ -1,0 +1,25 @@
+{
+  "name": "@obcda/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public dictionary/search REST API (Hono). Runtime-agnostic core; Cloudflare Workers deploy wiring comes with the deploy issue.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/dev.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@obcda/contracts": "workspace:*",
+    "@obcda/domain": "workspace:*",
+    "hono": "^4.8.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@hono/node-server": "^1.15.0",
+    "@types/node": "^26.1.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
