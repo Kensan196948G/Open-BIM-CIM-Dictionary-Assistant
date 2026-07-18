@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
 import type { SearchResponse } from "@obcda/contracts";
-
-import { Badge } from "../components/Badge";
-import { SearchBox } from "../components/SearchBox";
+import { EmptyState, ResultCard, SearchBox } from "@obcda/ui";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, searchConcepts } from "../lib/api";
 import { loadSettings } from "../lib/settings";
 
@@ -23,6 +21,7 @@ type LoadState =
   | { kind: "error"; message: string };
 
 export function SearchPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
   const [state, setState] = useState<LoadState>({ kind: "idle" });
@@ -51,7 +50,10 @@ export function SearchPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <SearchBox initialQuery={query} />
+      <SearchBox
+        initialQuery={query}
+        onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)}
+      />
 
       {state.kind === "loading" && (
         <p role="status" className="text-slate-600">
@@ -69,14 +71,10 @@ export function SearchPage() {
       )}
 
       {state.kind === "loaded" && state.response.data.length === 0 && (
-        <div role="status" className="rounded border border-slate-200 bg-white p-4">
-          <p className="font-medium">
-            「{query}」に一致する用語が見つかりませんでした。
-          </p>
-          <p className="mt-1 text-sm text-slate-600">
-            表記（全角/半角・略語・英語名）を変えるか、別の関連語で検索してください。
-          </p>
-        </div>
+        <EmptyState
+          title={`「${query}」に一致する用語が見つかりませんでした。`}
+          hint="表記（全角/半角・略語・英語名）を変えるか、別の関連語で検索してください。"
+        />
       )}
 
       {state.kind === "loaded" && state.response.data.length > 0 && (
@@ -89,27 +87,16 @@ export function SearchPage() {
               <li key={item.id}>
                 <Link
                   to={`/concepts/${item.id}`}
-                  className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-blue-500 focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
+                  className="group block rounded-lg focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-lg font-semibold text-blue-800">
-                      {item.name}
-                    </span>
-                    <Badge>{item.standardFamily}</Badge>
-                    <Badge>{item.type}</Badge>
-                    <Badge>{item.version}</Badge>
-                  </div>
-                  {item.summaryJa && (
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-700">
-                      {item.summaryJa}
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-slate-500">
-                    一致理由:{" "}
-                    {item.matchedBy
+                  <ResultCard
+                    name={item.name}
+                    badges={[item.standardFamily, item.type, item.version]}
+                    summary={item.summaryJa}
+                    footnote={`一致理由: ${item.matchedBy
                       .map((reason) => MATCH_REASON_LABELS[reason] ?? reason)
-                      .join("、")}
-                  </p>
+                      .join("、")}`}
+                  />
                 </Link>
               </li>
             ))}

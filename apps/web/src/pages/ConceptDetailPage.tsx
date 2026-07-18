@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { ConceptDetailResponse, ConceptRelationsResponse } from "@obcda/contracts";
+import { Badge } from "@obcda/ui";
 
-import { Badge } from "../components/Badge";
 import { ApiError, fetchConcept, fetchRelations } from "../lib/api";
 
 const RELATION_LABELS: Record<string, string> = {
