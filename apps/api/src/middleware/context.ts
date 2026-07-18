@@ -1,9 +1,13 @@
 import type { DictionaryRepository } from "../repositories/types";
 
-/** Hono generics: per-request variables shared across middleware/routes. */
+/** Hono generics: per-request variables and Workers bindings. */
 export type AppEnv = {
   Variables: {
     requestId: string;
     repository: DictionaryRepository;
+  };
+  Bindings: {
+    /** CORS allowlist origin for the web app (wrangler.toml [vars]); absent on Node dev. */
+    ALLOWED_ORIGIN?: string;
   };
 };

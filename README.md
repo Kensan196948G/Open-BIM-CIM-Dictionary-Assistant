@@ -372,8 +372,9 @@ stateDiagram-v2
 
 | 文書 | 内容 |
 | --- | --- |
-| `Open-BIM-CIM-Dictionary-Assistant_要件定義書_20260718.md` | 何を、なぜ、どこまで実現するか |
-| `Open-BIM-CIM-Dictionary-Assistant_詳細設計仕様書_20260718.md` | どの構造・処理・API・DBで実装するか |
+| `CIM Dictionary Assistant 要件定義書.md` | 何を、なぜ、どこまで実現するか |
+| `CIM Dictionary Assistant 詳細設計仕様書.md` | どの構造・処理・API・DBで実装するか |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | デプロイ・ロールバック・運用・障害対応・リリース前チェックリスト |
 | `README.md` | 利用者・開発者向けの入口 |
 
 ## 🗺️ 開発ロードマップ
@@ -394,22 +395,24 @@ flowchart LR
 | 構想 | ✅ |
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
-| 実装 | 🔨 MVP 基盤実装中 |
-| 検証 | 🔨 単体・統合テスト 64 件 + E2E 3 件（CI 実ブラウザ）/ CI 稼働 |
-| 公開 | ⏳ 未着手 |
+| 実装 | ✅ MVP（fixtures 辞書）実装完了 |
+| 検証 | ✅ 単体・統合 91 件 + E2E 3 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み |
+| 公開 | 🚦 デプロイ準備完了 — 本番デプロイは人間の承認・手動実行待ち |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
 
 | コンポーネント | 状態 | 内容 |
 | --- | --- | --- |
-| `packages/domain` | ✅ | ラベル正規化（NFC/NFKC・全半角・長音・中点・ハイフン吸収）、canonical key、IFC 版・和暦版パース。テスト 37 件、branch カバレッジ 90% 超 |
-| `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・エラー・AI 回答） |
-| `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql`（FTS 生成列・pg_trgm・pgvector） |
-| `apps/api` | ✅ | Hono 検索・辞書 API（fixtures ベース。検索/詳細/関連/出典/ヘルス）。テスト 17 件 |
-| `apps/web` | ✅ | ホーム・検索結果・用語詳細（React + Vite + Tailwind、WCAG 配慮） |
+| `packages/domain` | ✅ | ラベル正規化（NFC/NFKC・全半角・長音・中点・ハイフン吸収）、canonical key、IFC 版・和暦版パース。branch カバレッジ 90% 超 |
+| `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・比較・エラー・AI 回答） |
+| `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql` / `0001_init.down.sql`（up→down→up round-trip 検証済み） |
+| `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(根拠提示・LLM未設定フォールバック)/出典/版一覧/ヘルス + CORS・セキュリティヘッダー |
+| `apps/web` | ✅ | ホーム・検索結果・用語詳細（React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E |
+| `apps/ingestion` | 🔨 | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）。実アダプターは後続 (#13) |
 | `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
-| CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + 依存監査） |
-| Neon 接続・取り込み・AI 回答 | ⏳ | 後続 Issue（repository ポート差し替えで対応） |
+| CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
+| デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
+| Neon 接続・取り込み・実 LLM | ⏳ | 後続 Issue #12/#13/#14（repository/アダプター差し替えで対応） |
 
 ## ⚠️ 免責
 

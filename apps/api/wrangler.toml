@@ -1,0 +1,13 @@
+# Cloudflare Workers config for the dictionary API.
+# Deploy is performed manually by a human operator — see docs/DEPLOYMENT.md.
+name = "obcda-api"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+# Secrets (never in this file): DATABASE_URL, LLM_API_KEY → `wrangler secret put`
+[vars]
+# CORS allowlist for the web origin; set to the Pages URL in production.
+ALLOWED_ORIGIN = "http://localhost:5173"
+
+[observability]
+enabled = true

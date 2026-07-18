@@ -6,35 +6,33 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "MVP Phase 1: モノレポ基盤 + domain/contracts/db + 検索API(fixtures) + 最小UI + CI を実装し PR 作成",
+  "goal": "リリース・本番デプロイ直前状態への完成（本番デプロイのみ人間承認待ち）",
   "phase": "DeployGate",
   "stable": {
     "achieved": true,
-    "consecutive_ci_success": 3,
-    "note": "test/lint/build/CI x3/review/security 全通過。main宛PR mergeは人間決裁待ち"
+    "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
+  },
+  "deploy": {
+    "ready": true,
+    "runbook": "docs/DEPLOYMENT.md",
+    "blocked_on": "人間による本番デプロイ実行（Cloudflare Workers/Pages）とNeonプロジェクト作成の承認"
   },
   "kpi": {
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 64,
+    "test_count": 91,
+    "e2e_count": 3,
     "security_critical": 0,
     "blocker_count": 0
   },
   "review": {
-    "coderabbit_rounds": 2,
-    "coderabbit_findings_total": 22,
-    "coderabbit_findings_fixed": 21,
+    "coderabbit_rounds": 3,
+    "coderabbit_findings_total": 29,
+    "coderabbit_findings_fixed": 28,
     "coderabbit_findings_skipped_already_addressed": 1,
     "security_advisories_fixed": 1,
-    "critical_high_open": 0,
-    "pending": "確認レビュー(round3)は CodeRabbit quota 上限で未実行 — 次セッション冒頭で実施"
-  },
-  "pr": {
-    "number": 8,
-    "url": "https://github.com/Kensan196948G/Open-BIM-CIM-Dictionary-Assistant/pull/8",
-    "target": "main",
-    "merge_requires_human": true
+    "critical_high_open": 0
   },
   "execution": {
     "max_duration_minutes": 300,
@@ -44,21 +42,30 @@
   },
   "automation": {
     "auto_issue_generation": true,
-    "self_evolution": true
+    "self_evolution": true,
+    "feature_push_authorized": true,
+    "merge_requires_human": true
   },
-  "deploy": {
-    "ready": false
-  },
-  "completed_issues": [],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7],
   "blocked_issues": [],
+  "pending_human_decisions": [
+    "本番デプロイ実行（Cloudflare Workers/Pages — docs/DEPLOYMENT.md 手順）",
+    "Neon プロジェクト作成（Issue #12 の前提・課金リソース）",
+    "リポジトリの public 化（現在 private）"
+  ],
   "learning": {
     "failure_patterns": [
-      "ポート8787は開発機で既使用 — スモークテストはPORT環境変数で回避"
+      "ポート8787は開発機で既使用 — スモークテストはPORT環境変数で回避",
+      "このマシンは headless Chrome が SIGTRAP で起動不可 (#9) — E2E は CI が正",
+      "pnpm run script への -- フラグ透過は二重解釈される — vite 直接 exec で回避",
+      "sed/python パッチ後は必ず format:fix を通してから commit（CI format check 失敗の教訓）"
     ],
     "success_patterns": [
       "enum を domain の as const タプルに集約し Zod/Drizzle が共有参照する構成",
-      "repository を interface 化し fixtures ベースで DB なし統合テスト 17 件を成立",
-      "Turborepo Just-in-Time パッケージ（exports に TS ソース直指定・ビルドレス）"
+      "repository を interface 化し fixtures ベースで DB なし統合テストを成立",
+      "Turborepo Just-in-Time パッケージ（exports に TS ソース直指定・ビルドレス）",
+      "複数 open PR は tmp/integration へ試験統合し単一レビューで quota 節約",
+      "使い捨てローカル PG クラスタ (initdb+pg_ctl) で migration round-trip を sudo なし検証"
     ]
   }
 }

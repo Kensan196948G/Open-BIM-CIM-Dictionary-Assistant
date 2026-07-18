@@ -1,12 +1,16 @@
 import {
+  AssistantAnswerSchema,
+  CompareResponseSchema,
   ConceptDetailResponseSchema,
   ConceptRelationsResponseSchema,
   ErrorResponseSchema,
   SearchResponseSchema,
+  SearchResultItemSchema,
   SourcesResponseSchema,
   SourceVersionsResponseSchema,
 } from "@obcda/contracts";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import app from "../src/index";
 
@@ -206,5 +210,94 @@ describe("cross-cutting middleware", () => {
     const { res, body } = await getJson("/api/v1/nope");
     expect(res.status).toBe(404);
     expect(ErrorResponseSchema.parse(body).error.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("POST /api/v1/compare", () => {
+  const HORIZONTAL_ID = "018f0000-0000-7000-8000-000000000002";
+
+  async function postJson(path: string, body: unknown) {
+    const res = await app.request(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return { res, body: await res.json() };
+  }
+
+  it("returns full details for 2-4 concepts", async () => {
+    const { res, body } = await postJson("/api/v1/compare", {
+      ids: [IFC_ALIGNMENT_ID, HORIZONTAL_ID],
+    });
+    expect(res.status).toBe(200);
+    const parsed = CompareResponseSchema.parse(body);
+    expect(parsed.data.map((d) => d.name)).toEqual([
+      "IfcAlignment",
+      "IfcAlignmentHorizontal",
+    ]);
+  });
+
+  it("rejects fewer than 2 or more than 4 ids", async () => {
+    const one = await postJson("/api/v1/compare", { ids: [IFC_ALIGNMENT_ID] });
+    expect(one.res.status).toBe(400);
+    const five = await postJson("/api/v1/compare", {
+      ids: Array(5).fill(IFC_ALIGNMENT_ID),
+    });
+    expect(five.res.status).toBe(400);
+  });
+
+  it("404s with the offending index for unknown ids", async () => {
+    const { res, body } = await postJson("/api/v1/compare", {
+      ids: [IFC_ALIGNMENT_ID, UNKNOWN_ID],
+    });
+    expect(res.status).toBe(404);
+    const parsed = ErrorResponseSchema.parse(body);
+    expect(parsed.error.details?.[0]?.field).toBe("ids.1");
+  });
+
+  it("rejects malformed JSON bodies", async () => {
+    const res = await app.request("/api/v1/compare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{not json",
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("POST /api/v1/assistant/answers", () => {
+  async function ask(question: string) {
+    const res = await app.request("/api/v1/assistant/answers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    return { res, body: (await res.json()) as never };
+  }
+
+  it("returns a contract-valid insufficient-evidence answer with grounding (no LLM configured)", async () => {
+    const { res, body } = await ask("IfcAlignment とは何ですか");
+    expect(res.status).toBe(200);
+    const data = (body as { data: { answer: unknown; evidence: unknown[] } }).data;
+    const answer = AssistantAnswerSchema.parse(data.answer);
+    expect(answer.insufficientEvidence).toBe(true);
+    expect(answer.claims).toHaveLength(0);
+    expect(answer.caveats.length).toBeGreaterThan(0);
+    const evidence = z.array(SearchResultItemSchema).parse(data.evidence);
+    expect(evidence.map((e) => e.canonicalKey)).toContain("ifc4x3:entity:IfcAlignment");
+  });
+
+  it("handles zero-evidence questions without fabricating claims", async () => {
+    const { res, body } = await ask("存在しない専門用語xyz987");
+    expect(res.status).toBe(200);
+    const data = (body as { data: { answer: unknown; evidence: unknown[] } }).data;
+    const answer = AssistantAnswerSchema.parse(data.answer);
+    expect(answer.insufficientEvidence).toBe(true);
+    expect(data.evidence).toHaveLength(0);
+  });
+
+  it("rejects empty questions", async () => {
+    const { res } = await ask("   ");
+    expect(res.status).toBe(400);
   });
 });

@@ -1,21 +1,45 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 import type { AppEnv } from "./middleware/context";
 import { errorResponse } from "./middleware/errors";
 import { requestId } from "./middleware/requestId";
 import { securityHeaders } from "./middleware/securityHeaders";
 import type { DictionaryRepository } from "./repositories/types";
+import { createAssistantRoutes } from "./routes/assistant";
+import { compareRoutes } from "./routes/compare";
 import { conceptRoutes } from "./routes/concepts";
 import { healthRoutes } from "./routes/health";
 import { searchRoutes } from "./routes/search";
 import { sourceRoutes } from "./routes/sources";
+import { NoopLlmProvider, type LlmProvider } from "./services/llm";
+
+const DEV_ORIGIN = "http://localhost:5173";
+
+export type AppOptions = {
+  llmProvider?: LlmProvider;
+};
 
 /** Compose the API with an injected repository (fixtures now, Neon later). */
-export function createApp(repository: DictionaryRepository) {
+export function createApp(repository: DictionaryRepository, options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
+  const llmProvider = options.llmProvider ?? new NoopLlmProvider();
 
   app.use("*", requestId());
   app.use("*", securityHeaders());
+  // Pages (web) and Workers (api) run on separate origins in production —
+  // allow exactly the configured web origin, nothing else (§10.1 API乱用).
+  app.use(
+    "/api/*",
+    cors({
+      origin: (origin, c) => {
+        const allowed = c.env?.ALLOWED_ORIGIN ?? DEV_ORIGIN;
+        return origin === allowed ? origin : null;
+      },
+      allowMethods: ["GET", "POST", "OPTIONS"],
+      maxAge: 600,
+    }),
+  );
   app.use("*", async (c, next) => {
     c.set("repository", repository);
     await next();
@@ -23,6 +47,8 @@ export function createApp(repository: DictionaryRepository) {
 
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);
+  app.route("/api/v1/compare", compareRoutes);
+  app.route("/api/v1/assistant", createAssistantRoutes(llmProvider));
   app.route("/api/v1/sources", sourceRoutes);
   app.route("/api/v1/health", healthRoutes);
 
