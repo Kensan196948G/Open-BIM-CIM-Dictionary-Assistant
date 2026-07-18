@@ -10,6 +10,7 @@ import type {
   MatchReason,
   SearchQuery,
   SourceSummary,
+  SourceVersionSummary,
 } from "@obcda/contracts";
 import {
   compactFold,
@@ -302,6 +303,16 @@ export class InMemoryDictionaryRepository implements DictionaryRepository {
       baseUrl: source.baseUrl,
       sourceType: source.sourceType,
       licenseStatus: source.licenseStatus,
+    }));
+  }
+
+  async getSourceVersions(sourceId: string): Promise<SourceVersionSummary[] | null> {
+    const source = this.fixture.sources.find((s) => s.id === sourceId);
+    if (!source) return null;
+    return source.versions.map((version) => ({
+      id: version.id,
+      versionLabel: version.versionLabel,
+      retrievedAt: version.retrievedAt,
     }));
   }
 

@@ -85,3 +85,17 @@ export const SourcesResponseSchema = z.object({
   meta: ResponseMetaSchema,
 });
 export type SourcesResponse = z.infer<typeof SourcesResponseSchema>;
+
+/** GET /api/v1/sources/{id}/versions item (§7.2). */
+export const SourceVersionSummarySchema = z.object({
+  id: z.uuid(),
+  versionLabel: z.string(),
+  retrievedAt: z.iso.datetime(),
+});
+export type SourceVersionSummary = z.infer<typeof SourceVersionSummarySchema>;
+
+export const SourceVersionsResponseSchema = z.object({
+  data: z.array(SourceVersionSummarySchema),
+  meta: ResponseMetaSchema,
+});
+export type SourceVersionsResponse = z.infer<typeof SourceVersionsResponseSchema>;

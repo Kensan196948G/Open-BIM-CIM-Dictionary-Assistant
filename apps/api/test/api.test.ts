@@ -4,6 +4,7 @@ import {
   ErrorResponseSchema,
   SearchResponseSchema,
   SourcesResponseSchema,
+  SourceVersionsResponseSchema,
 } from "@obcda/contracts";
 import { describe, expect, it } from "vitest";
 
@@ -146,6 +147,30 @@ describe("GET /api/v1/sources", () => {
     const { body } = await getJson("/api/v1/sources");
     const parsed = SourcesResponseSchema.parse(body);
     expect(parsed.data.map((s) => s.code)).toContain("MLIT_BIMCIM_R8");
+  });
+});
+
+describe("GET /api/v1/sources/:id/versions", () => {
+  it("lists version labels with retrieval timestamps", async () => {
+    const sources = SourcesResponseSchema.parse(
+      (await getJson("/api/v1/sources")).body,
+    );
+    const mlit = sources.data.find((s) => s.code === "MLIT_BIMCIM_R8");
+    expect(mlit).toBeDefined();
+
+    const { res, body } = await getJson(`/api/v1/sources/${mlit?.id}/versions`);
+    expect(res.status).toBe(200);
+    const parsed = SourceVersionsResponseSchema.parse(body);
+    expect(parsed.data.map((v) => v.versionLabel)).toContain("令和8年3月");
+  });
+
+  it("404s for unknown ids and 400s for malformed ids", async () => {
+    const missing = await getJson(`/api/v1/sources/${UNKNOWN_ID}/versions`);
+    expect(missing.res.status).toBe(404);
+    expect(ErrorResponseSchema.parse(missing.body).error.code).toBe("NOT_FOUND");
+
+    const malformed = await getJson("/api/v1/sources/nope/versions");
+    expect(malformed.res.status).toBe(400);
   });
 });
 
