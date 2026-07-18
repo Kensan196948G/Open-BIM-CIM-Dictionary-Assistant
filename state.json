@@ -7,7 +7,12 @@
     "phase_mode": "development"
   },
   "goal": "MVP Phase 1: モノレポ基盤 + domain/contracts/db + 検索API(fixtures) + 最小UI + CI を実装し PR 作成",
-  "phase": "Review",
+  "phase": "DeployGate",
+  "stable": {
+    "achieved": true,
+    "consecutive_ci_success": 3,
+    "note": "test/lint/build/CI x3/review/security 全通過。main宛PR mergeは人間決裁待ち"
+  },
   "kpi": {
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
@@ -18,9 +23,12 @@
   },
   "review": {
     "coderabbit_rounds": 2,
-    "coderabbit_findings_total": 18,
-    "coderabbit_findings_fixed": 18,
-    "critical_high_open": 0
+    "coderabbit_findings_total": 22,
+    "coderabbit_findings_fixed": 21,
+    "coderabbit_findings_skipped_already_addressed": 1,
+    "security_advisories_fixed": 1,
+    "critical_high_open": 0,
+    "pending": "確認レビュー(round3)は CodeRabbit quota 上限で未実行 — 次セッション冒頭で実施"
   },
   "pr": {
     "number": 8,
