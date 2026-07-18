@@ -104,7 +104,9 @@ describe("SourceAdapter contract", () => {
     expect(artifacts[0]?.contentType).toBe("application/json");
     // integrity metadata must be the real digest of the payload bytes
     const expectedDigest = [
-      ...new Uint8Array(await crypto.subtle.digest("SHA-256", artifacts[0]!.bytes.slice())),
+      ...new Uint8Array(
+        await crypto.subtle.digest("SHA-256", artifacts[0]!.bytes.slice()),
+      ),
     ]
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
