@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { SystemInfo } from "@obcda/contracts";
+import { Badge } from "@obcda/ui";
 
-import { Badge } from "../components/Badge";
 import { ApiError, fetchSystemInfo } from "../lib/api";
 import {
   DEFAULT_SETTINGS,

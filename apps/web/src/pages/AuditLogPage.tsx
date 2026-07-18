@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AuditEvent } from "@obcda/contracts";
+import { StatusPill, type StatusTone } from "@obcda/ui";
 
 import { ApiError, fetchAuditEvents } from "../lib/api";
 
@@ -8,10 +9,10 @@ type LoadState =
   | { kind: "loaded"; events: AuditEvent[] }
   | { kind: "error"; message: string };
 
-function statusBadgeClass(status: number): string {
-  if (status >= 500) return "bg-red-100 text-red-800 border-red-300";
-  if (status >= 400) return "bg-amber-100 text-amber-900 border-amber-300";
-  return "bg-green-100 text-green-800 border-green-300";
+function statusTone(status: number): StatusTone {
+  if (status >= 500) return "error";
+  if (status >= 400) return "warning";
+  return "success";
 }
 
 export function AuditLogPage() {
@@ -111,11 +112,9 @@ export function AuditLogPage() {
                   <td className="px-3 py-1.5 font-mono">{event.method}</td>
                   <td className="px-3 py-1.5 font-mono text-slate-700">{event.path}</td>
                   <td className="px-3 py-1.5">
-                    <span
-                      className={`inline-block rounded border px-1.5 py-0.5 text-xs ${statusBadgeClass(event.status)}`}
-                    >
+                    <StatusPill tone={statusTone(event.status)}>
                       {event.status}
-                    </span>
+                    </StatusPill>
                   </td>
                   <td className="whitespace-nowrap px-3 py-1.5 text-slate-700">
                     {event.durationMs} ms

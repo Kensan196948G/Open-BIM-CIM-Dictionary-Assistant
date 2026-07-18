@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom";
-
-import { SearchBox } from "../components/SearchBox";
+import { SearchBox } from "@obcda/ui";
+import { Link, useNavigate } from "react-router-dom";
 
 const FEATURED_TERMS = [
   "IfcAlignment",
@@ -13,6 +12,7 @@ const FEATURED_TERMS = [
 ];
 
 export function HomePage() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="hero-heading" className="pt-6">
@@ -23,7 +23,10 @@ export function HomePage() {
           公開仕様を横断検索し、やさしい説明・技術定義・出典・版をまとめて確認できます。
         </p>
         <div className="mt-4">
-          <SearchBox autoFocus />
+          <SearchBox
+            autoFocus
+            onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)}
+          />
         </div>
       </section>
 

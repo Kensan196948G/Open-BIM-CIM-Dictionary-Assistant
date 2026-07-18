@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-type SearchBoxProps = {
+export type SearchBoxProps = {
+  /** Callback with the trimmed query on submit. Router-agnostic by design. */
+  onSearch: (query: string) => void;
   initialQuery?: string;
   autoFocus?: boolean;
+  placeholder?: string;
 };
 
-/** Accessible search form: visible label, keyboard-first, submits to /search. */
-export function SearchBox({ initialQuery = "", autoFocus = false }: SearchBoxProps) {
+/** Accessible search form: visible label (sr-only), keyboard-first submit. */
+export function SearchBox({
+  onSearch,
+  initialQuery = "",
+  autoFocus = false,
+  placeholder = "例: IfcAlignment、属性情報、LOD",
+}: SearchBoxProps) {
   const [query, setQuery] = useState(initialQuery);
-  const navigate = useNavigate();
 
-  // keep the input in sync when the route's q changes (e.g. back/forward)
+  // keep the input in sync when the caller's query changes (e.g. back/forward)
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
@@ -24,7 +30,7 @@ export function SearchBox({ initialQuery = "", autoFocus = false }: SearchBoxPro
         event.preventDefault();
         const trimmed = query.trim();
         if (trimmed.length === 0) return;
-        navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+        onSearch(trimmed);
       }}
     >
       <label htmlFor="search-input" className="sr-only">
@@ -36,7 +42,7 @@ export function SearchBox({ initialQuery = "", autoFocus = false }: SearchBoxPro
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         autoFocus={autoFocus}
-        placeholder="例: IfcAlignment、属性情報、LOD"
+        placeholder={placeholder}
         className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-offset-1 focus:outline-blue-600"
       />
       <button

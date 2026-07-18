@@ -1,0 +1,5 @@
+/* Design-system stylesheet built with Tailwind v4.
+   The CLI build scans the component sources below and emits only the
+   utilities they use (plus preflight + theme variables). */
+@import "tailwindcss";
+@source "./**/*.tsx";
