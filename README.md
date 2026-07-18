@@ -281,7 +281,12 @@ pnpm test        # Vitest（domain はカバレッジ閾値 90% 付き）
 pnpm build       # Web 本番ビルド
 ```
 
-> E2E（Playwright）とアクセシビリティ自動試験は後続 Issue で追加予定です。
+```bash
+# E2E（Playwright — api/web を自動起動して実ブラウザで検証）
+pnpm --filter @obcda/web test:e2e
+```
+
+> E2E は CI（ubuntu-latest）での実行を正とします（ローカル headless Chrome の環境問題は Issue #9 参照）。アクセシビリティ自動試験は後続 Issue で追加予定です。
 
 ## 🌍 環境
 
@@ -390,7 +395,7 @@ flowchart LR
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
 | 実装 | 🔨 MVP 基盤実装中 |
-| 検証 | 🔨 単体・統合テスト 62 件 / CI 稼働 |
+| 検証 | 🔨 単体・統合テスト 64 件 + E2E 3 件（CI 実ブラウザ）/ CI 稼働 |
 | 公開 | ⏳ 未着手 |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
