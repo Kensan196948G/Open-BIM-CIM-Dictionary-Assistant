@@ -316,6 +316,20 @@ export class InMemoryDictionaryRepository implements DictionaryRepository {
     }));
   }
 
+  async getStats(): Promise<{
+    concepts: number;
+    publishedConcepts: number;
+    sources: number;
+  }> {
+    return {
+      concepts: this.fixture.concepts.length,
+      publishedConcepts: this.fixture.concepts.filter(
+        (concept) => concept.status === "published",
+      ).length,
+      sources: this.fixture.sources.length,
+    };
+  }
+
   async isReady(): Promise<boolean> {
     return this.indexed.length > 0;
   }

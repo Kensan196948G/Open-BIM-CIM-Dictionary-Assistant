@@ -26,6 +26,12 @@ export interface DictionaryRepository {
   listSources(): Promise<SourceSummary[]>;
   /** null when the source id is unknown (vs. an empty version list). */
   getSourceVersions(sourceId: string): Promise<SourceVersionSummary[] | null>;
+  /** Dictionary size facts for /system/info. */
+  getStats(): Promise<{
+    concepts: number;
+    publishedConcepts: number;
+    sources: number;
+  }>;
   /** Readiness probe — false when the backing store is unavailable. */
   isReady(): Promise<boolean>;
 }

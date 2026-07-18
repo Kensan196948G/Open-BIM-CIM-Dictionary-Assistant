@@ -5,6 +5,7 @@ import type { SearchResponse } from "@obcda/contracts";
 import { Badge } from "../components/Badge";
 import { SearchBox } from "../components/SearchBox";
 import { ApiError, searchConcepts } from "../lib/api";
+import { loadSettings } from "../lib/settings";
 
 const MATCH_REASON_LABELS: Record<string, string> = {
   exact_identifier: "識別子一致",
@@ -33,7 +34,7 @@ export function SearchPage() {
     }
     let cancelled = false;
     setState({ kind: "loading" });
-    searchConcepts({ q: query })
+    searchConcepts({ q: query, limit: loadSettings().searchLimit })
       .then((response) => {
         if (!cancelled) setState({ kind: "loaded", response });
       })

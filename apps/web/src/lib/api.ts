@@ -1,8 +1,10 @@
 import type {
+  AuditEventsResponse,
   ConceptDetailResponse,
   ConceptRelationsResponse,
   ErrorResponse,
   SearchResponse,
+  SystemInfoResponse,
 } from "@obcda/contracts";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -43,6 +45,7 @@ export type SearchParams = {
   type?: string;
   schema?: string;
   cursor?: string;
+  limit?: number;
 };
 
 export function searchConcepts(params: SearchParams): Promise<SearchResponse> {
@@ -52,6 +55,7 @@ export function searchConcepts(params: SearchParams): Promise<SearchResponse> {
   if (params.type) query.set("type", params.type);
   if (params.schema) query.set("schema", params.schema);
   if (params.cursor) query.set("cursor", params.cursor);
+  if (params.limit) query.set("limit", String(params.limit));
   return request<SearchResponse>(`/api/v1/search?${query.toString()}`);
 }
 
@@ -63,4 +67,12 @@ export function fetchRelations(id: string): Promise<ConceptRelationsResponse> {
   return request<ConceptRelationsResponse>(
     `/api/v1/concepts/${encodeURIComponent(id)}/relations`,
   );
+}
+
+export function fetchSystemInfo(): Promise<SystemInfoResponse> {
+  return request<SystemInfoResponse>("/api/v1/system/info");
+}
+
+export function fetchAuditEvents(limit = 100): Promise<AuditEventsResponse> {
+  return request<AuditEventsResponse>(`/api/v1/system/audit-events?limit=${limit}`);
 }

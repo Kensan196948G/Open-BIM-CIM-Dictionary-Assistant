@@ -68,3 +68,27 @@ test("zero-result search shows guidance instead of an empty page", async ({ page
     page.getByText(/表記（全角\/半角・略語・英語名）を変える/),
   ).toBeVisible();
 });
+
+test("settings and audit-log pages are reachable from the header nav", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // favicon is declared for the browser tab
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    "/favicon.svg",
+  );
+
+  await page.getByRole("link", { name: /設定/ }).click();
+  await expect(page.getByRole("heading", { name: /システム設定/ })).toBeVisible();
+  // system info card loads from the API
+  await expect(page.getByText(/サンプル辞書（fixtures）/)).toBeVisible();
+
+  await page.getByRole("link", { name: /監査ログ/ }).click();
+  await expect(page.getByRole("heading", { name: /監査ログ/ })).toBeVisible();
+  // the earlier system-info request is already recorded in the trail
+  await expect(page.getByRole("table")).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "/api/v1/system/info" }).first(),
+  ).toBeVisible();
+});
