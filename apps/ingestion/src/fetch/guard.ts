@@ -86,6 +86,9 @@ export function checkActualLength(
   declaredLength: number | null,
   maxBytes: number = DEFAULT_MAX_BYTES,
 ): GuardVerdict {
+  if (!Number.isSafeInteger(actualBytes) || actualBytes < 0) {
+    return { ok: false, reason: "invalid_actual_length" };
+  }
   if (actualBytes > maxBytes) {
     return { ok: false, reason: "body_exceeds_limit" };
   }
@@ -105,14 +108,19 @@ export function checkMagicNumber(bytes: Uint8Array, contentType: string): GuardV
     signature.every((byte, index) => bytes[index] === byte);
 
   if (type === "application/pdf") {
-    // %PDF
-    return startsWith([0x25, 0x50, 0x44, 0x46])
+    // full "%PDF-" header, not just the prefix
+    return startsWith([0x25, 0x50, 0x44, 0x46, 0x2d])
       ? { ok: true }
       : { ok: false, reason: "magic_mismatch_pdf" };
   }
   if (type === "application/zip") {
-    // PK
-    return startsWith([0x50, 0x4b])
+    // four-byte ZIP signatures: standard, empty archive, spanned archive
+    const zipSignatures = [
+      [0x50, 0x4b, 0x03, 0x04],
+      [0x50, 0x4b, 0x05, 0x06],
+      [0x50, 0x4b, 0x07, 0x08],
+    ];
+    return zipSignatures.some(startsWith)
       ? { ok: true }
       : { ok: false, reason: "magic_mismatch_zip" };
   }
@@ -121,5 +129,52 @@ export function checkMagicNumber(bytes: Uint8Array, contentType: string): GuardV
       ? { ok: true }
       : { ok: false, reason: "magic_mismatch_gzip" };
   }
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// resolved-address guard (§10.1 SSRF / DNS再解決対策)
+// ---------------------------------------------------------------------------
+
+/**
+ * Post-DNS check: the HTTP client must resolve every A/AAAA record for the
+ * (already allowlisted) hostname, pass each address through this guard, and
+ * connect only to addresses that pass — re-resolving per request so DNS
+ * rebinding cannot swap in a private target between check and connect.
+ * Rejects loopback, private, link-local, CGN, multicast and reserved ranges.
+ */
+export function checkResolvedAddress(ip: string): GuardVerdict {
+  const bad = (reason: string): GuardVerdict => ({ ok: false, reason });
+  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,4})$/.exec(ip);
+  if (v4) {
+    const octets = v4.slice(1).map((part) => Number.parseInt(part, 10));
+    if (octets.some((octet) => octet > 255)) return bad("invalid_ip");
+    const [a = 0, b = 0] = octets;
+    if (a === 0 || a === 10 || a === 127) return bad("private_or_loopback_ipv4");
+    if (a === 100 && b >= 64 && b <= 127) return bad("cgn_range_ipv4");
+    if (a === 169 && b === 254) return bad("link_local_ipv4");
+    if (a === 172 && b >= 16 && b <= 31) return bad("private_or_loopback_ipv4");
+    if (a === 192 && b === 168) return bad("private_or_loopback_ipv4");
+    if (a >= 224) return bad("multicast_or_reserved_ipv4");
+    return { ok: true };
+  }
+
+  const v6 = ip.toLowerCase();
+  if (!v6.includes(":")) return bad("invalid_ip");
+  if (v6 === "::" || v6 === "::1") return bad("loopback_or_unspecified_ipv6");
+  if (v6.startsWith("::ffff:")) {
+    // IPv4-mapped — apply the IPv4 rules to the embedded address
+    return checkResolvedAddress(v6.slice("::ffff:".length));
+  }
+  if (
+    v6.startsWith("fe8") ||
+    v6.startsWith("fe9") ||
+    v6.startsWith("fea") ||
+    v6.startsWith("feb")
+  ) {
+    return bad("link_local_ipv6");
+  }
+  if (v6.startsWith("fc") || v6.startsWith("fd")) return bad("unique_local_ipv6");
+  if (v6.startsWith("ff")) return bad("multicast_ipv6");
   return { ok: true };
 }

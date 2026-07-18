@@ -4,6 +4,7 @@ import {
   checkActualLength,
   checkDeclaredLength,
   checkMagicNumber,
+  checkResolvedAddress,
   checkSourceUrl,
   DEFAULT_MAX_BYTES,
 } from "../src/fetch/guard";
@@ -108,5 +109,80 @@ describe("checkMagicNumber", () => {
     const html = new TextEncoder().encode("<!doctype html>");
     expect(checkMagicNumber(html, "text/html; charset=utf-8").ok).toBe(true);
     expect(checkMagicNumber(html, "application/json").ok).toBe(true);
+  });
+});
+
+describe("checkActualLength input validation", () => {
+  it("rejects non-integer or negative actual sizes", () => {
+    expect(checkActualLength(-1, null)).toEqual({
+      ok: false,
+      reason: "invalid_actual_length",
+    });
+    expect(checkActualLength(1.5, null).ok).toBe(false);
+    expect(checkActualLength(Number.NaN, null).ok).toBe(false);
+    expect(checkActualLength(Number.POSITIVE_INFINITY, null).ok).toBe(false);
+  });
+});
+
+describe("checkMagicNumber full signatures", () => {
+  it("requires the full %PDF- header", () => {
+    const truncated = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x00]);
+    expect(checkMagicNumber(truncated, "application/pdf").ok).toBe(false);
+  });
+
+  it("accepts all three ZIP signature variants and rejects bare PK", () => {
+    const standard = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    const empty = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
+    const spanned = new Uint8Array([0x50, 0x4b, 0x07, 0x08]);
+    const barePk = new Uint8Array([0x50, 0x4b, 0x00, 0x00]);
+    expect(checkMagicNumber(standard, "application/zip").ok).toBe(true);
+    expect(checkMagicNumber(empty, "application/zip").ok).toBe(true);
+    expect(checkMagicNumber(spanned, "application/zip").ok).toBe(true);
+    expect(checkMagicNumber(barePk, "application/zip").ok).toBe(false);
+  });
+});
+
+describe("checkResolvedAddress", () => {
+  it("rejects loopback, private, link-local, CGN and reserved IPv4 ranges", () => {
+    for (const ip of [
+      "127.0.0.1",
+      "10.1.2.3",
+      "172.16.0.1",
+      "172.31.255.255",
+      "192.168.0.185",
+      "169.254.169.254",
+      "100.64.0.1",
+      "0.0.0.0",
+      "224.0.0.1",
+      "255.255.255.255",
+    ]) {
+      expect(checkResolvedAddress(ip).ok, ip).toBe(false);
+    }
+  });
+
+  it("accepts public IPv4 addresses", () => {
+    expect(checkResolvedAddress("104.16.132.229").ok).toBe(true);
+    expect(checkResolvedAddress("203.0.114.1").ok).toBe(true);
+  });
+
+  it("rejects local/special IPv6 and IPv4-mapped private addresses", () => {
+    for (const ip of [
+      "::1",
+      "::",
+      "fe80::1",
+      "fd12:3456::1",
+      "fc00::1",
+      "ff02::1",
+      "::ffff:192.168.0.10",
+    ]) {
+      expect(checkResolvedAddress(ip).ok, ip).toBe(false);
+    }
+    expect(checkResolvedAddress("2606:4700::6810:84e5").ok).toBe(true);
+    expect(checkResolvedAddress("::ffff:104.16.132.229").ok).toBe(true);
+  });
+
+  it("rejects malformed addresses", () => {
+    expect(checkResolvedAddress("999.1.1.1").ok).toBe(false);
+    expect(checkResolvedAddress("not-an-ip").ok).toBe(false);
   });
 });

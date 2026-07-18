@@ -32,12 +32,16 @@ class StaticSampleAdapter implements SourceAdapter {
     const bytes = new TextEncoder().encode(
       JSON.stringify({ name: "IfcAlignment", summary: "線形の基準" }),
     );
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    const sha256 = [...new Uint8Array(digest)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
     return [
       {
         url: version.url,
         contentType: "application/json",
         bytes,
-        sha256: "0".repeat(64),
+        sha256,
         retrievedAt: "2026-07-18T00:00:00Z",
       },
     ];
@@ -98,6 +102,13 @@ describe("SourceAdapter contract", () => {
 
     const artifacts = await adapter.fetch(versions[0]!, ctx);
     expect(artifacts[0]?.contentType).toBe("application/json");
+    // integrity metadata must be the real digest of the payload bytes
+    const expectedDigest = [
+      ...new Uint8Array(await crypto.subtle.digest("SHA-256", artifacts[0]!.bytes.slice())),
+    ]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+    expect(artifacts[0]?.sha256).toBe(expectedDigest);
 
     const records: NormalizedRecord[] = [];
     for await (const parsed of adapter.parse(artifacts[0]!, {
