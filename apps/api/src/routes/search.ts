@@ -29,6 +29,8 @@ searchRoutes.get("/", async (c) => {
     data: outcome.items,
     meta: { requestId: c.get("requestId"), nextCursor: outcome.nextCursor },
   };
-  c.header("Cache-Control", "public, max-age=300");
+  // no-store until the edge-cache layer (§11) caches data separately from the
+  // per-request meta.requestId envelope
+  c.header("Cache-Control", "no-store");
   return c.json(body);
 });

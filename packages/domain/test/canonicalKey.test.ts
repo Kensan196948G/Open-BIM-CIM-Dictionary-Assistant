@@ -79,4 +79,9 @@ describe("parseCanonicalKey", () => {
     expect(parseCanonicalKey("ifc4x3:widget:IfcAlignment")).toBeNull();
     expect(parseCanonicalKey("ifc4x3:entity: ")).toBeNull();
   });
+
+  it("rejects non-canonical names with surrounding whitespace", () => {
+    expect(parseCanonicalKey("ifc4x3:entity: IfcAlignment")).toBeNull();
+    expect(parseCanonicalKey("ifc4x3:entity:IfcAlignment ")).toBeNull();
+  });
 });

@@ -11,6 +11,7 @@ sourceRoutes.get("/", async (c) => {
     data: sources,
     meta: { requestId: c.get("requestId"), nextCursor: null },
   };
-  c.header("Cache-Control", "public, max-age=3600");
+  // no-store until the edge-cache layer (§11) separates data from requestId
+  c.header("Cache-Control", "no-store");
   return c.json(body);
 });

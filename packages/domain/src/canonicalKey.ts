@@ -54,6 +54,7 @@ export function parseCanonicalKey(key: string): CanonicalKeyParts | null {
   const [namespace, conceptType, name] = segments as [string, string, string];
   if (!NAMESPACE_RE.test(namespace)) return null;
   if (!isConceptType(conceptType)) return null;
-  if (name.trim().length === 0) return null;
+  // canonical keys are stored trimmed — parsing rejects non-canonical spellings
+  if (name.length === 0 || name !== name.trim()) return null;
   return { namespace, conceptType, name };
 }

@@ -24,7 +24,8 @@ conceptRoutes.get("/:id", async (c) => {
     data: detail,
     meta: { requestId: c.get("requestId"), nextCursor: null },
   };
-  c.header("Cache-Control", "public, max-age=86400");
+  // no-store until the edge-cache layer (§11) separates data from requestId
+  c.header("Cache-Control", "no-store");
   return c.json(body);
 });
 
@@ -43,6 +44,7 @@ conceptRoutes.get("/:id/relations", async (c) => {
     data: relations,
     meta: { requestId: c.get("requestId"), nextCursor: null },
   };
-  c.header("Cache-Control", "public, max-age=86400");
+  // no-store until the edge-cache layer (§11) separates data from requestId
+  c.header("Cache-Control", "no-store");
   return c.json(body);
 });

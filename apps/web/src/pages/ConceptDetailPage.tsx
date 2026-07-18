@@ -38,7 +38,14 @@ export function ConceptDetailPage() {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setState({
+        kind: "error",
+        message: "用語IDが指定されていません。",
+        notFound: true,
+      });
+      return;
+    }
     let cancelled = false;
     setState({ kind: "loading" });
     Promise.all([fetchConcept(id), fetchRelations(id)])
