@@ -59,10 +59,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
+      # no pnpm cache here: this job never runs `pnpm install`, so the store
+      # path does not exist and the cache post-step would fail the job
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: pnpm
 
       # Fail only on high/critical advisories; moderate findings are triaged via Issues.
       - name: Audit (high+)
