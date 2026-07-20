@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "Issue #12 完了（PR #24 マージ判定待ち）→ 残: #13 実アダプター / #14 実LLM / #15-#17",
+  "goal": "v0.1.0 リリース（PR #24 merged・tag/Release 済み）— 本番 Pages デプロイのみ人間実行待ち → 次: #13 実アダプター / #14 実LLM / #15-#17",
   "phase": "DeployGate",
   "stable": {
     "achieved": true,
@@ -15,8 +15,11 @@
   "deploy": {
     "ready": true,
     "runbook": "docs/DEPLOYMENT.md",
-    "blocked_on": "人間による本番デプロイ実行と、Pages preview 環境への DATABASE_URL secret 登録",
-    "preview_url": "https://preview.obcda-web.pages.dev"
+    "blocked_on": "人間による本番 Pages デプロイ実行（auto mode classifier により CTO 代理実行不可・承認済み）と、Pages 環境への DATABASE_URL secret 登録",
+    "preview_url": "https://preview.obcda-web.pages.dev",
+    "release_tag": "v0.1.0",
+    "merge_commit": "a831e6169a75151b7f8b5301d635ba55bb645231",
+    "merged_at": "2026-07-20T04:47:28Z"
   },
   "kpi": {
     "success_rate_target": 0.9,
@@ -47,12 +50,11 @@
     "feature_push_authorized": true,
     "merge_requires_human": true
   },
-  "completed_issues": [1, 2, 3, 4, 5, 6, 7],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7, 12],
   "blocked_issues": [],
   "pending_human_decisions": [
-    "PR #24 のマージ判定（Y/N）",
-    "本番デプロイ実行（Cloudflare — docs/DEPLOYMENT.md 手順）",
-    "Pages obcda-web preview 環境への DATABASE_URL 登録（Neon preview ブランチ接続へ切替）",
+    "本番 Pages デプロイの実行（マージ判定 Y で承認済み・classifier 制約により人間の直接実行が必要 — docs/DEPLOYMENT.md §4）",
+    "Pages obcda-web preview/production 環境への DATABASE_URL 登録（Neon ブランチ接続へ切替）",
     "リポジトリの public 化（現在 private）"
   ],
   "learning": {
@@ -63,7 +65,8 @@
       "sed/python パッチ後は必ず format:fix を通してから commit（CI format check 失敗の教訓）",
       "tsx + sandbox では undici の WASM HTTP パーサが OOM — esbuild で単一化し素の node で実行",
       "CRLF ファイルへの Python テキストモード書き込みは全行 LF 化 — バイナリ置換で回避",
-      "CLOUDFLARE_API_TOKEN に Workers Scripts Write なし — preview は Pages フルスタックで代替"
+      "CLOUDFLARE_API_TOKEN に Workers Scripts Write なし — preview は Pages フルスタックで代替",
+      "auto mode classifier は本番デプロイ実行を会話内承認では許可しない — ユーザーの ! コマンド直接実行が正規経路"
     ],
     "success_patterns": [
       "enum を domain の as const タプルに集約し Zod/Drizzle が共有参照する構成",
