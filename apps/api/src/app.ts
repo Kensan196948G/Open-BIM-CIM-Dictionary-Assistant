@@ -22,6 +22,10 @@ const DEV_ORIGIN = "http://localhost:5173";
 export type AppOptions = {
   llmProvider?: LlmProvider;
   auditLog?: AuditLog;
+  /** Per-request repository override (e.g. Neon when DATABASE_URL is bound); falls back to `repository`. */
+  resolveRepository?: (
+    env: AppEnv["Bindings"] | undefined,
+  ) => DictionaryRepository | undefined;
 };
 
 /** Compose the API with an injected repository (fixtures now, Neon later). */
@@ -46,7 +50,7 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
     }),
   );
   app.use("*", async (c, next) => {
-    c.set("repository", repository);
+    c.set("repository", options.resolveRepository?.(c.env) ?? repository);
     await next();
   });
   app.use("/api/*", auditTrail(auditLog));
