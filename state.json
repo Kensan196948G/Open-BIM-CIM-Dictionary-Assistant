@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "v0.1.0 本番リリース完了（https://obcda-web.pages.dev）→ 次: #13 実アダプター / #14 実LLM / #15-#17",
+  "goal": "v0.1.0 本番リリース完了（https://obcda.mirai-dx-platform.com）→ 次: #13 実アダプター / #14 実LLM / #15-#17",
   "phase": "Monitor",
   "stable": {
     "achieved": true,
@@ -17,7 +17,8 @@
     "runbook": "docs/DEPLOYMENT.md",
     "blocked_on": "Pages 環境への DATABASE_URL secret 登録（preview=Neon preview ブランチ / production=Neon main スキーマ適用〔人間ゲート〕が先）",
     "preview_url": "https://preview.obcda-web.pages.dev",
-    "production_url": "https://obcda-web.pages.dev",
+    "production_url": "https://obcda.mirai-dx-platform.com",
+    "production_url_alias": "https://obcda-web.pages.dev",
     "production_deployment_id": "4ea443b0",
     "deployed_at": "2026-07-20T06:27:02Z",
     "deployed_by": "human（wrangler pages deploy --branch main）",
