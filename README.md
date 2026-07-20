@@ -399,7 +399,7 @@ flowchart LR
 | 詳細設計 | ✅ 初版 |
 | 実装 | ✅ MVP（fixtures 辞書）+ Neon/Drizzle repository（#12） |
 | 検証 | ✅ 単体・統合 109 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
-| 公開 | 🧪 非本番 preview 稼働中（`https://preview.obcda-web.pages.dev`）/ 🚦 本番デプロイは人間の承認・手動実行待ち |
+| 公開 | 🚀 **本番稼働中** `https://obcda-web.pages.dev`（v0.1.0・2026-07-20 デプロイ・fixtures モード）/ 🧪 preview `https://preview.obcda-web.pages.dev` |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
 
@@ -416,6 +416,7 @@ flowchart LR
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
 | 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |
+| 本番デプロイ | ✅ | Pages `obcda-web` production スロット `https://obcda-web.pages.dev`（**v0.1.0** / merge `a831e61` / 2026-07-20 人間実行）— smoke 9 項目 PASS・TLS 正常・`_worker.js` 非公開確認 |
 | 取り込み・実 LLM | ⏳ | 後続 Issue #13/#14（アダプター差し替えで対応） |
 
 ## ⚠️ 免責

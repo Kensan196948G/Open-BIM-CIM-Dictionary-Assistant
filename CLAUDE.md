@@ -889,7 +889,7 @@ ClaudeOS 起動経路では `lib/model-router.sh` により Opus 4.8=`xhigh`、S
 |---|---|
 | ☁️ Cloudflare account | account_id: `4f1e888469df7e0b896bb4e211b12633`（個人アカウント — 表示名・メールは非公開運用情報として記載しない） |
 | 🧪 非本番 preview（web+api 一体） | Pages プロジェクト `obcda-web` の **preview ブランチ** → `https://preview.obcda-web.pages.dev`（`_worker.js` 同梱・同一オリジン `/api/*`、`_routes.json` で `/api/*` のみ Worker 起動） |
-| 🚀 本番（計画・人間が実行） | API: Workers `obcda-api` + カスタムドメイン `obcda-api.mirai-dx-platform.com`（zone/サブドメイン承認済み・`apps/api/wrangler.toml` に routes 設定済み）/ Web: Pages `obcda-web` **production スロット**（`obcda-web.pages.dev`） |
+| 🚀 本番（**稼働中** — 2026-07-20 初回デプロイ・v0.1.0） | Web+API 一体: Pages `obcda-web` **production スロット** `https://obcda-web.pages.dev`（`_worker.js` 同梱・fixtures モード・デプロイ実行は人間）/ 将来計画: Workers `obcda-api` + カスタムドメイン `obcda-api.mirai-dx-platform.com`（zone/サブドメイン承認済み・`apps/api/wrangler.toml` に routes 設定済み） |
 | 🌍 zone | `mirai-dx-platform.com`（`e375e651e49a40801a305b89e297bff0`） |
 | 🐘 Neon project | `Open-BIM-CIM-Dictionary-Assistant`（`empty-mud-09532676` / org `org-little-violet-74140600`・2026-07-20 ユーザー承認のうえ作成） |
 | 🐘 Neon branches | `main` = 本番相当（**スキーマ適用は人間ゲート** §8.6）/ `preview`（`br-sweet-recipe-a6p3fn78`）= 非本番検証用（`0001_init.sql` 適用済み + fixtures seed 済み） |

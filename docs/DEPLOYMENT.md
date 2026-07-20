@@ -119,6 +119,22 @@ npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 ⏸ **残ゲート（人間）**: Pages `obcda-web` の **preview 環境**へ `DATABASE_URL`（Neon `preview` ブランチの接続文字列）を登録する。
 `wrangler pages secret put` は production 環境専用のため、ダッシュボード（Workers & Pages → obcda-web → Settings → Environment variables → Preview）または Pages API の `deployment_configs.preview.env_vars` PATCH で行う。登録後に再デプロイすると preview API が Neon 接続へ切り替わる（コード変更不要 — `resolveRepository` が自動判定）。
 
+### 🚀 3.5 本番デプロイ（実施済み — 2026-07-20 / 人間実行・v0.1.0）
+
+§3.4 と同一構成・同一成果物を Pages **production スロット**へ人間（管理者）が手動デプロイした:
+
+| 項目 | 値 |
+| --- | --- |
+| URL | `https://obcda-web.pages.dev`（production_branch=`main`・初回本番デプロイ） |
+| バージョン | v0.1.0（merge commit `a831e61` / PR #24 / GitHub Release 発行済み） |
+| デプロイ ID | `4ea443b0`（Direct Upload・2026-07-20T06:27Z） |
+| DB | fixtures モード（`DATABASE_URL` 未登録。Neon `main` への結線はスキーマ適用〔人間ゲート §3.3〕→ secret 登録 → 再デプロイの順） |
+| 実行コマンド | §3.4 手順 4 を `--branch main` に変えて実行（成果物は CI 通過済みビルド・sourcemap 除去済み） |
+
+デプロイ後 smoke（全 PASS）: `/`（200・TLS 検証成功）/ `/api/v1/health/live` / `/api/v1/health/ready` / 検索（`線形` 3 件・`IfcAlignment` 5 件）/ 概念詳細 / 関連 / 出典 3 件 / `_worker.js` 非公開（SPA fallback が返る）/ レイテンシ 0.1〜0.2 秒。
+
+> 📝 運用メモ: Claude Code の auto mode classifier は本番デプロイコマンドの AI 代理実行を許可しない（会話内承認では解除不可）。本番デプロイは常に人間がターミナルで実行する — 本手順書の冒頭原則どおり。
+
 ---
 
 ## 🔁 4. 更新デプロイ手順

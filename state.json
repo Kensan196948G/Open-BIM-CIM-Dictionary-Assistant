@@ -6,8 +6,8 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "Issue #12 完了（PR #24 マージ判定待ち）→ 残: #13 実アダプター / #14 実LLM / #15-#17",
-  "phase": "DeployGate",
+  "goal": "v0.1.0 本番リリース完了（https://obcda-web.pages.dev）→ 次: #13 実アダプター / #14 実LLM / #15-#17",
+  "phase": "Monitor",
   "stable": {
     "achieved": true,
     "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
@@ -15,8 +15,15 @@
   "deploy": {
     "ready": true,
     "runbook": "docs/DEPLOYMENT.md",
-    "blocked_on": "人間による本番デプロイ実行と、Pages preview 環境への DATABASE_URL secret 登録",
-    "preview_url": "https://preview.obcda-web.pages.dev"
+    "blocked_on": "Pages 環境への DATABASE_URL secret 登録（preview=Neon preview ブランチ / production=Neon main スキーマ適用〔人間ゲート〕が先）",
+    "preview_url": "https://preview.obcda-web.pages.dev",
+    "production_url": "https://obcda-web.pages.dev",
+    "production_deployment_id": "4ea443b0",
+    "deployed_at": "2026-07-20T06:27:02Z",
+    "deployed_by": "human（wrangler pages deploy --branch main）",
+    "release_tag": "v0.1.0",
+    "merge_commit": "a831e6169a75151b7f8b5301d635ba55bb645231",
+    "merged_at": "2026-07-20T04:47:28Z"
   },
   "kpi": {
     "success_rate_target": 0.9,
@@ -47,12 +54,10 @@
     "feature_push_authorized": true,
     "merge_requires_human": true
   },
-  "completed_issues": [1, 2, 3, 4, 5, 6, 7],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7, 12],
   "blocked_issues": [],
   "pending_human_decisions": [
-    "PR #24 のマージ判定（Y/N）",
-    "本番デプロイ実行（Cloudflare — docs/DEPLOYMENT.md 手順）",
-    "Pages obcda-web preview 環境への DATABASE_URL 登録（Neon preview ブランチ接続へ切替）",
+    "Pages obcda-web preview/production 環境への DATABASE_URL 登録（Neon ブランチ接続へ切替。production は Neon main スキーマ適用が先）",
     "リポジトリの public 化（現在 private）"
   ],
   "learning": {
@@ -63,7 +68,8 @@
       "sed/python パッチ後は必ず format:fix を通してから commit（CI format check 失敗の教訓）",
       "tsx + sandbox では undici の WASM HTTP パーサが OOM — esbuild で単一化し素の node で実行",
       "CRLF ファイルへの Python テキストモード書き込みは全行 LF 化 — バイナリ置換で回避",
-      "CLOUDFLARE_API_TOKEN に Workers Scripts Write なし — preview は Pages フルスタックで代替"
+      "CLOUDFLARE_API_TOKEN に Workers Scripts Write なし — preview は Pages フルスタックで代替",
+      "auto mode classifier は本番デプロイ実行を会話内承認では許可しない — ユーザーの ! コマンド直接実行が正規経路"
     ],
     "success_patterns": [
       "enum を domain の as const タプルに集約し Zod/Drizzle が共有参照する構成",
