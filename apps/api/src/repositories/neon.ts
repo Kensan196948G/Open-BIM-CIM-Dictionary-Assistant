@@ -16,7 +16,7 @@ import type {
   SourceVersionSummary,
   TermLabel,
 } from "@obcda/contracts";
-import { concepts, sources, sourceVersions, termLabels } from "@obcda/db";
+import { concepts, sources, sourceVersions } from "@obcda/db";
 import type {
   ConceptType,
   LicenseStatus,
@@ -36,6 +36,7 @@ const CURRENT_VERSION_CTE = sql`
   current_version AS (
     SELECT DISTINCT ON (cv.concept_id)
       cv.concept_id AS "conceptId",
+      cv.source_version_id AS "sourceVersionId",
       cv.official_name AS "name",
       cv.summary_ja AS "summaryJa",
       cv.official_definition AS "officialDefinition",
@@ -54,7 +55,8 @@ const CURRENT_VERSION_CTE = sql`
     WHERE cv.status = 'published'
       AND (cv.valid_from IS NULL OR cv.valid_from <= now())
       AND (cv.valid_to IS NULL OR cv.valid_to > now())
-    ORDER BY cv.concept_id, cv.valid_from DESC NULLS LAST
+    ORDER BY cv.concept_id, cv.valid_from DESC NULLS LAST,
+      sv.retrieved_at DESC, cv.id
   )
 `;
 
@@ -92,8 +94,14 @@ export class NeonDictionaryRepository implements DictionaryRepository {
       FROM concepts c
       JOIN current_version cv ON cv."conceptId" = c.id
       WHERE true ${familyFilter} ${typeFilter}
+      ORDER BY c.id
       LIMIT ${MAX_SEARCH_CANDIDATES}
     `);
+    // Parity boundary: query.schema is matched in JS (IFC alias absorption,
+    // ranking.ts) AFTER this LIMIT, so schema-filtered results are only
+    // guaranteed complete up to MAX_SEARCH_CANDIDATES published concepts.
+    // ORDER BY c.id keeps the truncation set deterministic until the SQL-side
+    // pushdown lands (#25, with ingestion scale-up #13).
 
     const labelsByConceptId = await this.fetchLabelsFor(
       conceptRows.map((row) => row.id),
@@ -296,20 +304,30 @@ export class NeonDictionaryRepository implements DictionaryRepository {
     }
   }
 
+  // Label queries join current_version: only labels tied to the concept's
+  // current published source version (or version-independent NULL rows) may
+  // influence scoring/display — labels from superseded versions must not.
   private async fetchLabelsFor(
     conceptIds: string[],
   ): Promise<Map<string, ScorableLabel[]>> {
     const map = new Map<string, ScorableLabel[]>();
     if (conceptIds.length === 0) return map;
 
-    const rows = await this.db
-      .select({
-        conceptId: termLabels.conceptId,
-        label: termLabels.label,
-        labelType: termLabels.labelType,
-      })
-      .from(termLabels)
-      .where(inArray(termLabels.conceptId, conceptIds));
+    const { rows } = await this.db.execute<{
+      conceptId: string;
+      label: string;
+      labelType: ScorableLabel["labelType"];
+    }>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        tl.concept_id AS "conceptId",
+        tl.label AS "label",
+        tl.label_type AS "labelType"
+      FROM term_labels tl
+      JOIN current_version cv ON cv."conceptId" = tl.concept_id
+      WHERE ${inArray(sql`tl.concept_id`, conceptIds)}
+        AND (tl.source_version_id IS NULL OR tl.source_version_id = cv."sourceVersionId")
+    `);
 
     for (const row of rows) {
       const list = map.get(row.conceptId) ?? [];
@@ -320,14 +338,17 @@ export class NeonDictionaryRepository implements DictionaryRepository {
   }
 
   private async fetchConceptLabels(conceptId: string): Promise<TermLabel[]> {
-    const rows = await this.db
-      .select({
-        language: termLabels.language,
-        label: termLabels.label,
-        labelType: termLabels.labelType,
-      })
-      .from(termLabels)
-      .where(eq(termLabels.conceptId, conceptId));
+    const { rows } = await this.db.execute<TermLabel>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        tl.language AS "language",
+        tl.label AS "label",
+        tl.label_type AS "labelType"
+      FROM term_labels tl
+      JOIN current_version cv ON cv."conceptId" = tl.concept_id
+      WHERE tl.concept_id = ${conceptId}
+        AND (tl.source_version_id IS NULL OR tl.source_version_id = cv."sourceVersionId")
+    `);
     return rows;
   }
 

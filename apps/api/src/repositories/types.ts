@@ -32,6 +32,10 @@ export interface DictionaryRepository {
     publishedConcepts: number;
     sources: number;
   }>;
-  /** Readiness probe — false when the backing store is unavailable. */
+  /**
+   * Readiness probe — false when the backing store is unreachable OR holds no
+   * published content: an empty dictionary must not take traffic (both
+   * implementations gate on concept count; /health/ready maps false to 503).
+   */
   isReady(): Promise<boolean>;
 }

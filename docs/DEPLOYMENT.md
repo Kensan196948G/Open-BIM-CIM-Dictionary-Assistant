@@ -81,7 +81,7 @@ pnpm dlx wrangler@latest pages deploy dist --project-name obcda-web
 - SPA ルーティングは `apps/web/public/_redirects`（`/* /index.html 200`）で全パスを index.html へフォールバックする
 - 検証段階では Cloudflare Access で Pages 全体を保護できる（Zero Trust → Access → Applications）
 
-### 3.3 DB — Neon（#12 で実施済み — 2026-07-20）
+### 🐘 3.3 DB — Neon（#12 で実施済み — 2026-07-20）
 
 Neon プロジェクトは **2026-07-20 にユーザー承認のうえ作成済み**（`Open-BIM-CIM-Dictionary-Assistant` / `empty-mud-09532676` / PG17）。
 
@@ -109,8 +109,8 @@ Neon プロジェクトは **2026-07-20 にユーザー承認のうえ作成済�
 ```bash
 # 1) worker バンドル生成（apps/api で）
 npx wrangler deploy --dry-run --outdir <outdir>
-# 2) web ビルド（VITE_API_BASE_URL 未設定 = 同一オリジン）
-pnpm --filter @obcda/web build
+# 2) web ビルド（同一オリジン前提 — .env.local の値が紛れ込まないよう空値を明示）
+VITE_API_BASE_URL= pnpm --filter @obcda/web build
 # 3) dist + _worker.js + _routes.json({"version":1,"include":["/api/*"],"exclude":[]}) を 1 ディレクトリへ
 # 4) デプロイ
 npx wrangler pages deploy <dir> --project-name obcda-web --branch preview

@@ -4,8 +4,10 @@ import type { AppEnv } from "./middleware/context";
 import { InMemoryDictionaryRepository } from "./repositories/inMemory";
 import { NeonDictionaryRepository } from "./repositories/neon";
 import type { DictionaryRepository } from "./repositories/types";
+import { UnavailableDictionaryRepository } from "./repositories/unavailable";
 
 const fixtureRepository = new InMemoryDictionaryRepository(dictionaryFixture);
+const unavailableRepository = new UnavailableDictionaryRepository();
 
 // A live Workers isolate serves many requests, so cache the Neon repository
 // keyed by connection string instead of reconnecting every request; a
@@ -17,10 +19,18 @@ function resolveRepository(
   env: AppEnv["Bindings"] | undefined,
 ): DictionaryRepository | undefined {
   const databaseUrl = env?.DATABASE_URL;
-  if (!databaseUrl) return undefined;
+  if (!databaseUrl) {
+    // Deployments that declare REQUIRE_DATABASE=true (production) fail closed
+    // instead of silently serving stale fixtures; everything else keeps the
+    // deliberate MVP/preview fixtures fallback.
+    return env?.REQUIRE_DATABASE === "true" ? unavailableRepository : undefined;
+  }
   if (databaseUrl !== cachedDatabaseUrl) {
+    // Construct before touching the cache — a throwing constructor (e.g.
+    // malformed URL) must not leave the two cache slots out of sync.
+    const repository = new NeonDictionaryRepository(databaseUrl);
+    cachedRepository = repository;
     cachedDatabaseUrl = databaseUrl;
-    cachedRepository = new NeonDictionaryRepository(databaseUrl);
   }
   return cachedRepository;
 }

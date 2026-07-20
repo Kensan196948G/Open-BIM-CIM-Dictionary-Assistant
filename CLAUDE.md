@@ -887,7 +887,7 @@ ClaudeOS 起動経路では `lib/model-router.sh` により Opus 4.8=`xhigh`、S
 
 | 項目 | 値 |
 |---|---|
-| ☁️ Cloudflare account | `Kensan1969@gmail.com's Account`（`4f1e888469df7e0b896bb4e211b12633`） |
+| ☁️ Cloudflare account | account_id: `4f1e888469df7e0b896bb4e211b12633`（個人アカウント — 表示名・メールは非公開運用情報として記載しない） |
 | 🧪 非本番 preview（web+api 一体） | Pages プロジェクト `obcda-web` の **preview ブランチ** → `https://preview.obcda-web.pages.dev`（`_worker.js` 同梱・同一オリジン `/api/*`、`_routes.json` で `/api/*` のみ Worker 起動） |
 | 🚀 本番（計画・人間が実行） | API: Workers `obcda-api` + カスタムドメイン `obcda-api.mirai-dx-platform.com`（zone/サブドメイン承認済み・`apps/api/wrangler.toml` に routes 設定済み）/ Web: Pages `obcda-web` **production スロット**（`obcda-web.pages.dev`） |
 | 🌍 zone | `mirai-dx-platform.com`（`e375e651e49a40801a305b89e297bff0`） |

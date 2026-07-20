@@ -8,11 +8,14 @@ compatibility_date = "2026-07-01"
 
 # Secrets (never in this file): DATABASE_URL, LLM_API_KEY → `wrangler secret put`
 [vars]
-# CORS allowlist for the web origin.
-# Non-production preview: obcda-web Pages *preview* branch alias — the
-# pages.dev production slot stays reserved for the human-operated deploy
-# (docs/DEPLOYMENT.md §3.1; override this var at production deploy time).
-ALLOWED_ORIGIN = "https://preview.obcda-web.pages.dev"
+# CORS allowlist for the web origin. This file only feeds `wrangler deploy`
+# (the human-operated production path), so it carries the production web
+# origin; the Pages full-stack preview is same-origin and never reads it
+# (docs/DEPLOYMENT.md §3.4).
+ALLOWED_ORIGIN = "https://obcda-web.pages.dev"
+# Production must not silently fall back to fixtures when DATABASE_URL is
+# missing — flip to "true" once the Neon main branch is provisioned (§3.3).
+REQUIRE_DATABASE = "false"
 
 [observability]
 enabled = true

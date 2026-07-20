@@ -53,6 +53,10 @@ async function main(): Promise<void> {
   // Layer-ordered, not per-concept: FK checks are immediate (not deferred),
   // so every concept row must exist before any relation references it.
   const statements = [
+    // Serialize concurrent seed runs for the whole transaction — combined
+    // with the NOT EXISTS guards below this makes double-execution safe even
+    // though term_labels has no unique constraint.
+    sql`SELECT pg_advisory_xact_lock(727442001)`,
     ...sources.map(
       (source) => sql`
         INSERT INTO sources (id, code, name_ja, publisher, base_url, source_type, license_status)
@@ -93,12 +97,22 @@ async function main(): Promise<void> {
     ),
     // normalized_label stores the folded search-key layer (normalize.ts §4.4);
     // the trigram index is its only consumer — the display form stays in `label`.
+    // source_version_id ties each label to its provenance so current-version
+    // label filtering (neon.ts) stays faithful. NOT EXISTS substitutes for the
+    // missing unique constraint to keep re-runs duplicate-free.
     ...concepts.flatMap((concept) =>
       concept.labels.map(
         (label) => sql`
-          INSERT INTO term_labels (concept_id, language, label, normalized_label, label_type)
-          VALUES (${concept.id}, ${label.language}, ${label.label},
-                  ${foldLabelText(label.label)}, ${label.labelType})
+          INSERT INTO term_labels (concept_id, language, label, normalized_label, label_type, source_version_id)
+          SELECT ${concept.id}, ${label.language}, ${label.label},
+                 ${foldLabelText(label.label)}, ${label.labelType}, ${concept.sourceVersionId}
+          WHERE NOT EXISTS (
+            SELECT 1 FROM term_labels
+            WHERE concept_id = ${concept.id}
+              AND language = ${label.language}
+              AND label = ${label.label}
+              AND label_type = ${label.labelType}
+          )
         `,
       ),
     ),
