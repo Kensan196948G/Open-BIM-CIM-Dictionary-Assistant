@@ -47,15 +47,7 @@
     "feature_push_authorized": true,
     "merge_requires_human": true
   },
-  "completed_issues": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7
-  ],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7],
   "blocked_issues": [],
   "pending_human_decisions": [
     "PR #24 のマージ判定（Y/N）",
