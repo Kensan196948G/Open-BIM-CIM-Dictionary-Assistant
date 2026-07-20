@@ -11,6 +11,9 @@ export default tseslint.config(
       "**/.turbo/**",
       "**/coverage/**",
       "**/.wrangler/**",
+      // design-sync local artifacts (generated, untracked)
+      "ds-bundle/**",
+      ".ds-sync/**",
     ],
   },
   js.configs.recommended,

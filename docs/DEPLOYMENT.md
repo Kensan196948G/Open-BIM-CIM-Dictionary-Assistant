@@ -81,14 +81,43 @@ pnpm dlx wrangler@latest pages deploy dist --project-name obcda-web
 - SPA ルーティングは `apps/web/public/_redirects`（`/* /index.html 200`）で全パスを index.html へフォールバックする
 - 検証段階では Cloudflare Access で Pages 全体を保護できる（Zero Trust → Access → Applications）
 
-### 3.3 DB — Neon（後続 Issue #12・現時点では不要）
+### 3.3 DB — Neon（#12 で実施済み — 2026-07-20）
 
-MVP は fixtures 内蔵のため DB なしで公開可能。Neon 接続時:
+Neon プロジェクトは **2026-07-20 にユーザー承認のうえ作成済み**（`Open-BIM-CIM-Dictionary-Assistant` / `empty-mud-09532676` / PG17）。
 
-1. 🚫 **人間決裁**: Neon プロジェクト作成（推奨: `Open-BIM-CIM-Dictionary-Assistant` / `aws-ap-southeast-1` / PG17）
-2. dev ブランチ作成 → `migrations/0001_init.sql` 適用 → 検証（pgvector 有効化含む）
-3. 本番ブランチへの適用は人間承認後（`docs/` の変更管理に従う）
-4. `wrangler secret put DATABASE_URL` で API へ接続情報を登録（値はチャット・ログへ出さない）
+| ブランチ | 用途 | 状態 |
+| --- | --- | --- |
+| `main` | 本番相当。**スキーマ適用は人間承認後のみ**（CLAUDE.md §8.6） | 空（未適用） |
+| `preview`（`br-sweet-recipe-a6p3fn78`） | 非本番検証用 | `0001_init.sql` 適用済み（16 テーブル・enum 17・pg_trgm/vector）+ fixtures seed 済み |
+
+- seed は `apps/api/scripts/seed.ts`（`DATABASE_URL` 環境変数で対象を指定・冪等・単一トランザクション）
+- 本番（`main` ブランチ）への適用・`DATABASE_URL` secret 登録は人間が実行（値はチャット・ログへ出さない）
+
+### 3.4 🧪 非本番 preview（実施済み — 2026-07-20 / CTO 自律デプロイ）
+
+現在の API トークンは Workers Scripts Write を持たないため、preview は **Pages 1 プロジェクトのフルスタック構成**で配信している:
+
+| 項目 | 値 |
+| --- | --- |
+| URL | `https://preview.obcda-web.pages.dev`（Pages `obcda-web` の preview ブランチ） |
+| 構成 | web の `dist/` + `_worker.js`（`apps/api` の wrangler ビルド成果物）+ `_routes.json`（`/api/*` のみ Worker 起動） |
+| API 呼び出し | 同一オリジン相対パス（`VITE_API_BASE_URL` 未設定ビルド）— CORS 不要 |
+| DB | fixtures モード（`DATABASE_URL` 未登録のため）。Neon `preview` ブランチへの結線は下記の残ゲート |
+
+再デプロイ手順（CTO 自律可）:
+
+```bash
+# 1) worker バンドル生成（apps/api で）
+npx wrangler deploy --dry-run --outdir <outdir>
+# 2) web ビルド（VITE_API_BASE_URL 未設定 = 同一オリジン）
+pnpm --filter @obcda/web build
+# 3) dist + _worker.js + _routes.json({"version":1,"include":["/api/*"],"exclude":[]}) を 1 ディレクトリへ
+# 4) デプロイ
+npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
+```
+
+⏸ **残ゲート（人間）**: Pages `obcda-web` の **preview 環境**へ `DATABASE_URL`（Neon `preview` ブランチの接続文字列）を登録する。
+`wrangler pages secret put` は production 環境専用のため、ダッシュボード（Workers & Pages → obcda-web → Settings → Environment variables → Preview）または Pages API の `deployment_configs.preview.env_vars` PATCH で行う。登録後に再デプロイすると preview API が Neon 接続へ切り替わる（コード変更不要 — `resolveRepository` が自動判定）。
 
 ---
 
@@ -179,3 +208,4 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
 | 2026-07-18 | 1.0 | 初版（MVP fixtures 構成のデプロイ・ロールバック・運用・障害対応） |
+| 2026-07-20 | 1.1 | #12 反映: Neon プロジェクト/preview ブランチ作成・migration/seed 実施、非本番 preview（Pages フルスタック）デプロイ記録、`VITE_API_BASE_URL` 名称統一 |

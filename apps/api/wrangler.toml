@@ -1,5 +1,7 @@
 # Cloudflare Workers config for the dictionary API.
-# Deploy is performed manually by a human operator — see docs/DEPLOYMENT.md.
+# Production deploy/publish is performed manually by a human operator.
+# Non-production preview deploys (this route) are CTO-autonomous per
+# CLAUDE.md §8.6 / global CLAUDE.md §27.1 — see docs/DEPLOYMENT.md.
 name = "obcda-api"
 main = "src/index.ts"
 compatibility_date = "2026-07-01"
@@ -7,9 +9,15 @@ compatibility_date = "2026-07-01"
 # Secrets (never in this file): DATABASE_URL, LLM_API_KEY → `wrangler secret put`
 [vars]
 # CORS allowlist for the web origin.
-# ⚠️ MUST be overridden to the production Pages URL before deploying —
-# the localhost default breaks CORS for the real web origin (docs/DEPLOYMENT.md §3.1).
-ALLOWED_ORIGIN = "http://localhost:5173"
+# Non-production preview: obcda-web Pages *preview* branch alias — the
+# pages.dev production slot stays reserved for the human-operated deploy
+# (docs/DEPLOYMENT.md §3.1; override this var at production deploy time).
+ALLOWED_ORIGIN = "https://preview.obcda-web.pages.dev"
 
 [observability]
 enabled = true
+
+# Non-production preview custom domain (zone: mirai-dx-platform.com).
+[[routes]]
+pattern = "obcda-api.mirai-dx-platform.com"
+custom_domain = true

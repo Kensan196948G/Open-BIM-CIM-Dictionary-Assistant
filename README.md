@@ -250,12 +250,14 @@ cp .env.example .env.local
 ```dotenv
 APP_ENV=development
 APP_BASE_URL=http://localhost:5173
-API_BASE_URL=http://localhost:8787
+VITE_API_BASE_URL=http://localhost:8787
 DATABASE_URL=
 LLM_PROVIDER=
 LLM_MODEL=
 LLM_API_KEY=
 ```
+
+> `VITE_API_BASE_URL` は web ビルドが参照する API オリジンです（Vite は `VITE_` 接頭辞のみクライアントへ公開）。未設定なら同一オリジン相対パスになり、ローカル開発は Vite プロキシ（`/api` → `localhost:8787`）で動作します。
 
 ### 4. DB（任意 — MVP は fixtures で動作）
 

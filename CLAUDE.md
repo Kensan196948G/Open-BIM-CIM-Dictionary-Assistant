@@ -881,6 +881,21 @@ ClaudeOS 起動経路では `lib/model-router.sh` により Opus 4.8=`xhigh`、S
 | グローバル設定 | `~/.claude/CLAUDE.md` |
 
 
+## 🌐 25. デプロイ対応表（Cloudflare / Neon・2026-07-20 現在）
+
+グローバル設定 §27.3 の定めによる本リポジトリ固有の対応表（正本）。
+
+| 項目 | 値 |
+|---|---|
+| ☁️ Cloudflare account | `Kensan1969@gmail.com's Account`（`4f1e888469df7e0b896bb4e211b12633`） |
+| 🧪 非本番 preview（web+api 一体） | Pages プロジェクト `obcda-web` の **preview ブランチ** → `https://preview.obcda-web.pages.dev`（`_worker.js` 同梱・同一オリジン `/api/*`、`_routes.json` で `/api/*` のみ Worker 起動） |
+| 🚀 本番（計画・人間が実行） | API: Workers `obcda-api` + カスタムドメイン `obcda-api.mirai-dx-platform.com`（zone/サブドメイン承認済み・`apps/api/wrangler.toml` に routes 設定済み）/ Web: Pages `obcda-web` **production スロット**（`obcda-web.pages.dev`） |
+| 🌍 zone | `mirai-dx-platform.com`（`e375e651e49a40801a305b89e297bff0`） |
+| 🐘 Neon project | `Open-BIM-CIM-Dictionary-Assistant`（`empty-mud-09532676` / org `org-little-violet-74140600`・2026-07-20 ユーザー承認のうえ作成） |
+| 🐘 Neon branches | `main` = 本番相当（**スキーマ適用は人間ゲート** §8.6）/ `preview`（`br-sweet-recipe-a6p3fn78`）= 非本番検証用（`0001_init.sql` 適用済み + fixtures seed 済み） |
+| 🔑 API token 制約 | Workers Scripts **Write なし**（このため preview は Pages 経由でデプロイ）/ `workers.dev` サブドメイン取得は権限外（グローバル §27.3） |
+| ⏸ 残ゲート（人間） | Pages `obcda-web` preview 環境への `DATABASE_URL` secret 登録（現状 preview API は fixtures モード。登録後に Neon `preview` ブランチへ接続） |
+
 <claude-mem-context>
 # Recent Activity
 
