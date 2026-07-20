@@ -250,16 +250,18 @@ cp .env.example .env.local
 ```dotenv
 APP_ENV=development
 APP_BASE_URL=http://localhost:5173
-API_BASE_URL=http://localhost:8787
+VITE_API_BASE_URL=http://localhost:8787
 DATABASE_URL=
 LLM_PROVIDER=
 LLM_MODEL=
 LLM_API_KEY=
 ```
 
-### 4. DB（任意 — MVP は fixtures で動作）
+> `VITE_API_BASE_URL` は web ビルドが参照する API オリジンです（Vite は `VITE_` 接頭辞のみクライアントへ公開）。未設定なら同一オリジン相対パスになり、ローカル開発は Vite プロキシ（`/api` → `localhost:8787`）で動作します。
 
-現時点の API は `fixtures/concepts.sample.json` ベースの in-memory repository で動作し、DB なしで起動できます。Neon を使う場合は `migrations/0001_init.sql` を適用してください（Drizzle 接続は後続 Issue）。
+### 4. DB（任意 — DB なしでも fixtures で動作）
+
+API は `DATABASE_URL` 未設定なら `fixtures/concepts.sample.json` ベースの in-memory repository で動作し、DB なしで起動できます。`DATABASE_URL` を設定すると **Neon/Drizzle 実装（`NeonDictionaryRepository`）へ自動で切り替わります**（#12 実装済み）。スキーマは `migrations/0001_init.sql`、サンプル投入は `DATABASE_URL=... pnpm --filter @obcda/api exec tsx scripts/seed.ts`（冪等）。
 
 ### 5. 起動（開発）
 
@@ -395,9 +397,9 @@ flowchart LR
 | 構想 | ✅ |
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
-| 実装 | ✅ MVP（fixtures 辞書）実装完了 |
-| 検証 | ✅ 単体・統合 91 件 + E2E 3 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み |
-| 公開 | 🚦 デプロイ準備完了 — 本番デプロイは人間の承認・手動実行待ち |
+| 実装 | ✅ MVP（fixtures 辞書）+ Neon/Drizzle repository（#12） |
+| 検証 | ✅ 単体・統合 109 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
+| 公開 | 🧪 非本番 preview 稼働中（`https://preview.obcda-web.pages.dev`）/ 🚦 本番デプロイは人間の承認・手動実行待ち |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
 
@@ -412,7 +414,9 @@ flowchart LR
 | `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
 | CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
-| Neon 接続・取り込み・実 LLM | ⏳ | 後続 Issue #12/#13/#14（repository/アダプター差し替えで対応） |
+| Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
+| 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |
+| 取り込み・実 LLM | ⏳ | 後続 Issue #13/#14（アダプター差し替えで対応） |
 
 ## ⚠️ 免責
 

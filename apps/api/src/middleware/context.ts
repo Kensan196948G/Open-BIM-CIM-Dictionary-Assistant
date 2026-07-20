@@ -9,5 +9,9 @@ export type AppEnv = {
   Bindings: {
     /** CORS allowlist origin for the web app (wrangler.toml [vars]); absent on Node dev. */
     ALLOWED_ORIGIN?: string;
+    /** Neon connection string (wrangler secret); undefined falls back to the fixtures repository. */
+    DATABASE_URL?: string;
+    /** "true" on deployments that must not run without a DB (production): missing DATABASE_URL then fails closed. */
+    REQUIRE_DATABASE?: string;
   };
 };

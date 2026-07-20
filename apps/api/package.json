@@ -10,8 +10,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.0",
     "@obcda/contracts": "workspace:*",
+    "@obcda/db": "workspace:*",
     "@obcda/domain": "workspace:*",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.8.0",
     "zod": "^4.0.0"
   },

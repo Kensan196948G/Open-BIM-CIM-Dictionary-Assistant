@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "リリース・本番デプロイ直前状態への完成（本番デプロイのみ人間承認待ち）",
+  "goal": "Issue #12 完了（PR #24 マージ判定待ち）→ 残: #13 実アダプター / #14 実LLM / #15-#17",
   "phase": "DeployGate",
   "stable": {
     "achieved": true,
@@ -15,14 +15,15 @@
   "deploy": {
     "ready": true,
     "runbook": "docs/DEPLOYMENT.md",
-    "blocked_on": "人間による本番デプロイ実行（Cloudflare Workers/Pages）とNeonプロジェクト作成の承認"
+    "blocked_on": "人間による本番デプロイ実行と、Pages preview 環境への DATABASE_URL secret 登録",
+    "preview_url": "https://preview.obcda-web.pages.dev"
   },
   "kpi": {
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 91,
-    "e2e_count": 3,
+    "test_count": 109,
+    "e2e_count": 4,
     "security_critical": 0,
     "blocker_count": 0
   },
@@ -49,8 +50,9 @@
   "completed_issues": [1, 2, 3, 4, 5, 6, 7],
   "blocked_issues": [],
   "pending_human_decisions": [
-    "本番デプロイ実行（Cloudflare Workers/Pages — docs/DEPLOYMENT.md 手順）",
-    "Neon プロジェクト作成（Issue #12 の前提・課金リソース）",
+    "PR #24 のマージ判定（Y/N）",
+    "本番デプロイ実行（Cloudflare — docs/DEPLOYMENT.md 手順）",
+    "Pages obcda-web preview 環境への DATABASE_URL 登録（Neon preview ブランチ接続へ切替）",
     "リポジトリの public 化（現在 private）"
   ],
   "learning": {
@@ -58,14 +60,27 @@
       "ポート8787は開発機で既使用 — スモークテストはPORT環境変数で回避",
       "このマシンは headless Chrome が SIGTRAP で起動不可 (#9) — E2E は CI が正",
       "pnpm run script への -- フラグ透過は二重解釈される — vite 直接 exec で回避",
-      "sed/python パッチ後は必ず format:fix を通してから commit（CI format check 失敗の教訓）"
+      "sed/python パッチ後は必ず format:fix を通してから commit（CI format check 失敗の教訓）",
+      "tsx + sandbox では undici の WASM HTTP パーサが OOM — esbuild で単一化し素の node で実行",
+      "CRLF ファイルへの Python テキストモード書き込みは全行 LF 化 — バイナリ置換で回避",
+      "CLOUDFLARE_API_TOKEN に Workers Scripts Write なし — preview は Pages フルスタックで代替"
     ],
     "success_patterns": [
       "enum を domain の as const タプルに集約し Zod/Drizzle が共有参照する構成",
       "repository を interface 化し fixtures ベースで DB なし統合テストを成立",
       "Turborepo Just-in-Time パッケージ（exports に TS ソース直指定・ビルドレス）",
       "複数 open PR は tmp/integration へ試験統合し単一レビューで quota 節約",
-      "使い捨てローカル PG クラスタ (initdb+pg_ctl) で migration round-trip を sudo なし検証"
+      "使い捨てローカル PG クラスタ (initdb+pg_ctl) で migration round-trip を sudo なし検証",
+      "Pages 1プロジェクトに dist + _worker.js + _routes.json で API/web 同一オリジン preview",
+      "FK 即時検証に対応した層順 seed（全ノード→全エッジ）+ 件数ガードで冪等化"
     ]
+  },
+  "neon": {
+    "project_id": "empty-mud-09532676",
+    "approved_by_user": "2026-07-20",
+    "branches": {
+      "main": "本番相当・スキーマ未適用（人間ゲート）",
+      "preview": "br-sweet-recipe-a6p3fn78 — 0001_init.sql 適用 + fixtures seed 済み"
+    }
   }
 }

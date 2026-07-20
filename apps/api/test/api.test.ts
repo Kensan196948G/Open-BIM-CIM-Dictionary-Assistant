@@ -189,6 +189,25 @@ describe("health endpoints", () => {
   });
 });
 
+describe("REQUIRE_DATABASE fail-closed mode", () => {
+  const env = { REQUIRE_DATABASE: "true" };
+
+  it("reports not-ready instead of silently serving fixtures", async () => {
+    const ready = await app.request("/api/v1/health/ready", {}, env);
+    expect(ready.status).toBe(503);
+    const live = await app.request("/api/v1/health/live", {}, env);
+    expect(live.status).toBe(200);
+  });
+
+  it("fails data routes with the structured error contract", async () => {
+    const res = await app.request("/api/v1/search?q=IfcAlignment", {}, env);
+    expect(res.status).toBe(500);
+    expect(ErrorResponseSchema.parse(await res.json()).error.code).toBe(
+      "INTERNAL_ERROR",
+    );
+  });
+});
+
 describe("cross-cutting middleware", () => {
   it("echoes a well-formed X-Request-Id and sets security headers", async () => {
     const res = await app.request("/api/v1/health/live", {

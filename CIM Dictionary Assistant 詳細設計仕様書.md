@@ -836,7 +836,7 @@ flowchart LR
 # Public
 APP_ENV=development
 APP_BASE_URL=http://localhost:5173
-API_BASE_URL=http://localhost:8787
+VITE_API_BASE_URL=http://localhost:8787
 
 # Server only - values are placeholders
 DATABASE_URL=
