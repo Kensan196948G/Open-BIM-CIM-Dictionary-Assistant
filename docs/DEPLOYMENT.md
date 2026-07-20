@@ -125,13 +125,15 @@ npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 
 | 項目 | 値 |
 | --- | --- |
-| URL | `https://obcda-web.pages.dev`（production_branch=`main`・初回本番デプロイ） |
+| URL | **`https://obcda.mirai-dx-platform.com`**（カスタムドメイン・2026-07-20 設定）/ 別名 `https://obcda-web.pages.dev`（production_branch=`main`） |
 | バージョン | v0.1.0（merge commit `a831e61` / PR #24 / GitHub Release 発行済み） |
 | デプロイ ID | `4ea443b0`（Direct Upload・2026-07-20T06:27Z） |
 | DB | fixtures モード（`DATABASE_URL` 未登録。Neon `main` への結線はスキーマ適用〔人間ゲート §3.3〕→ secret 登録 → 再デプロイの順） |
 | 実行コマンド | §3.4 手順 4 を `--branch main` に変えて実行（成果物は CI 通過済みビルド・sourcemap 除去済み） |
 
 デプロイ後 smoke（全 PASS）: `/`（200・TLS 検証成功）/ `/api/v1/health/live` / `/api/v1/health/ready` / 検索（`線形` 3 件・`IfcAlignment` 5 件）/ 概念詳細 / 関連 / 出典 3 件 / `_worker.js` 非公開（SPA fallback が返る）/ レイテンシ 0.1〜0.2 秒。
+
+カスタムドメイン設定（2026-07-20・グローバル CLAUDE.md §27.1 特則によりユーザー指定サブドメインで実行）: Pages ドメイン追加 API + zone `mirai-dx-platform.com` へ CNAME `obcda` → `obcda-web.pages.dev`（proxied）。約 100 秒で active（Google CA 証明書）。カスタムドメイン smoke（トップ / health / 検索 / 概念詳細）全 200。API は同一オリジン相対パス呼び出しのため CORS 設定変更は不要。
 
 > 📝 運用メモ: Claude Code の auto mode classifier は本番デプロイコマンドの AI 代理実行を許可しない（会話内承認では解除不可）。本番デプロイは常に人間がターミナルで実行する — 本手順書の冒頭原則どおり。
 
