@@ -99,6 +99,7 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 async function readBodyCapped(
   response: Response,
   maxBytes: number,
+  requestUrl: string,
 ): Promise<Uint8Array> {
   const reader = response.body?.getReader();
   if (!reader) {
@@ -113,7 +114,7 @@ async function readBodyCapped(
     total += value.byteLength;
     if (total > maxBytes) {
       await reader.cancel();
-      throw new FetchGuardError("body_exceeds_limit", response.url);
+      throw new FetchGuardError("body_exceeds_limit", requestUrl);
     }
     chunks.push(value);
   }
@@ -124,6 +125,15 @@ async function readBodyCapped(
     offset += chunk.byteLength;
   }
   return merged;
+}
+
+/** Release an unconsumed body so keep-alive sockets are not held open. */
+async function discardBody(response: Response): Promise<void> {
+  try {
+    await response.body?.cancel();
+  } catch {
+    // best-effort cleanup; ignore cancellation errors
+  }
 }
 
 function parseDeclaredLength(response: Response): number | null {
@@ -226,6 +236,7 @@ export async function guardedFetch(
       }
 
       if (REDIRECT_STATUSES.has(response.status)) {
+        await discardBody(response);
         const location = response.headers.get("location");
         if (!location)
           throw new FetchGuardError("redirect_without_location", currentUrl);
@@ -237,15 +248,19 @@ export async function guardedFetch(
       }
 
       if (response.status === 304) return { kind: "not_modified" };
-      if (!response.ok) throw new HttpStatusError(response.status, currentUrl);
+      if (!response.ok) {
+        await discardBody(response);
+        throw new HttpStatusError(response.status, currentUrl);
+      }
 
       const declaredLength = parseDeclaredLength(response);
       const declaredVerdict = checkDeclaredLength(declaredLength, maxBytes);
       if (!declaredVerdict.ok) {
+        await discardBody(response);
         throw new FetchGuardError(declaredVerdict.reason, currentUrl);
       }
 
-      const bytes = await readBodyCapped(response, maxBytes);
+      const bytes = await readBodyCapped(response, maxBytes, currentUrl);
       const actualVerdict = checkActualLength(
         bytes.byteLength,
         declaredLength,

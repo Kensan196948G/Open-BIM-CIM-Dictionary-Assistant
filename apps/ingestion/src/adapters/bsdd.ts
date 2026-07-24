@@ -117,9 +117,15 @@ function classConceptType(classType: string | undefined): "term" | "pset" {
   return classType === "GroupOfProperties" ? "pset" : "term";
 }
 
+/** Same artifact object flows fetch → runner → parse; decode it only once. */
+const decodedJsonCache = new WeakMap<RawArtifact, unknown>();
+
 function decodeJson(artifact: RawArtifact): unknown {
+  if (decodedJsonCache.has(artifact)) return decodedJsonCache.get(artifact);
   try {
-    return JSON.parse(new TextDecoder().decode(artifact.bytes));
+    const payload: unknown = JSON.parse(new TextDecoder().decode(artifact.bytes));
+    decodedJsonCache.set(artifact, payload);
+    return payload;
   } catch {
     throw new Error(`bsdd: artifact is not valid JSON (${artifact.url})`);
   }
