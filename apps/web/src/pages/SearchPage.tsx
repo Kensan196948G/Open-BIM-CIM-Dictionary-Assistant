@@ -13,6 +13,11 @@ import {
 import { ApiError, searchConcepts } from "../lib/api";
 import { useCompare } from "../lib/compare";
 import { MATCH_REASON_LABELS } from "../lib/labels";
+import {
+  addSearchHistory,
+  clearSearchHistory,
+  loadSearchHistory,
+} from "../lib/searchHistory";
 import { loadSettings } from "../lib/settings";
 import { usePageMeta } from "../lib/topbar";
 
@@ -70,6 +75,7 @@ export function SearchPage() {
   usePageMeta("検索結果", query ? `「${query}」の検索結果` : "用語を検索してください");
   const [input, setInput] = useState(query);
   const [state, setState] = useState<LoadState>({ kind: "idle" });
+  const [history, setHistory] = useState<string[]>(() => loadSearchHistory());
 
   useEffect(() => {
     setInput(query);
@@ -80,6 +86,7 @@ export function SearchPage() {
       setState({ kind: "idle" });
       return;
     }
+    setHistory(addSearchHistory(query));
     let cancelled = false;
     setState({ kind: "loading" });
     searchConcepts({ q: query, limit: loadSettings().searchLimit })
@@ -149,7 +156,38 @@ export function SearchPage() {
         </div>
       )}
 
-      {state.kind === "idle" && <EmptyCard>検索語を入力してください。</EmptyCard>}
+      {state.kind === "idle" && history.length > 0 && (
+        <section aria-label="最近の検索">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="m-0 text-[12.5px] font-semibold text-faint">
+              🕘 最近の検索（この端末にのみ保存）
+            </h2>
+            <button
+              type="button"
+              onClick={() => setHistory(clearSearchHistory())}
+              className="cursor-pointer border-none bg-transparent p-0 font-sans text-[11.5px] font-semibold text-faint hover:text-danger"
+            >
+              履歴を消去
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {history.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => navigate(`/search?q=${encodeURIComponent(term)}`)}
+                className="cursor-pointer rounded-[20px] border border-line bg-white px-[13px] py-[7px] font-sans text-[12.5px] font-medium text-ink"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {state.kind === "idle" && history.length === 0 && (
+        <EmptyCard>検索語を入力してください。</EmptyCard>
+      )}
 
       {state.kind === "loaded" && state.response.data.length > 0 && (
         <div className="flex flex-col gap-2.5">

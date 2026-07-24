@@ -24,7 +24,22 @@ searchRoutes.get("/", async (c) => {
     );
   }
 
-  const outcome = await c.get("repository").search(parsed.data);
+  const repository = c.get("repository");
+  const outcome = await repository.search(parsed.data);
+
+  // §3.3 search analytics — fire-and-forget so recording never delays or
+  // fails the response (fixtures mode has no recorder and skips this).
+  if (repository.recordSearchEvent) {
+    const recording = repository
+      .recordSearchEvent(parsed.data.q, outcome.items.length === 0)
+      .catch(() => {});
+    try {
+      c.executionCtx.waitUntil(recording);
+    } catch {
+      // Node dev server has no ExecutionContext — the promise runs detached
+    }
+  }
+
   const body: SearchResponse = {
     data: outcome.items,
     meta: { requestId: c.get("requestId"), nextCursor: outcome.nextCursor },

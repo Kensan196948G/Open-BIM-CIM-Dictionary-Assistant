@@ -38,4 +38,10 @@ export interface DictionaryRepository {
    * implementations gate on concept count; /health/ready maps false to 503).
    */
   isReady(): Promise<boolean>;
+  /**
+   * Privacy-preserving search analytics (§3.3 search_events_daily): daily
+   * UPSERT keyed by SHA-256 of the folded query — the raw query text is
+   * never stored. Optional: fixtures mode has no durable store.
+   */
+  recordSearchEvent?(query: string, zeroResult: boolean): Promise<void>;
 }

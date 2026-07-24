@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "v0.3.0 本番リリース完了（Claude Design dc 全面適用・新4画面）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
+  "goal": "検索の本番対応（fixtures→Neon 切替・PR #37 マージ判定待ち）+ 検索履歴（端末内 + search_events_daily 集計）実装済み",
   "phase": "Monitor",
   "stable": {
     "achieved": true,
@@ -66,8 +66,8 @@
   "completed_issues": [1, 2, 3, 4, 5, 6, 7, 12, 13],
   "blocked_issues": [],
   "pending_human_decisions": [
-    "Pages obcda-web preview/production 環境への DATABASE_URL 登録（Neon ブランチ接続へ切替。production は Neon main スキーマ適用が先）",
-    "リポジトリの public 化（現在 private）"
+    "リポジトリの public 化 — 当分保留（2026-07-24 ユーザー決定）",
+    "外形監視用 Access Service Token の発行"
   ],
   "learning": {
     "failure_patterns": [
