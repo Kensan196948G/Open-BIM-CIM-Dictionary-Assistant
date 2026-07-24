@@ -137,6 +137,14 @@ npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 
 > 📝 運用メモ: Claude Code の auto mode classifier は本番デプロイコマンドの AI 代理実行を許可しない（会話内承認では解除不可）。本番デプロイは常に人間がターミナルで実行する — 本手順書の冒頭原則どおり。
 
+#### 本番デプロイ履歴
+
+| 版 | 日付 | デプロイ ID | merge | 実行 | 内容 |
+| --- | --- | --- | --- | --- | --- |
+| v0.1.0 | 2026-07-20 | `4ea443b0` | `a831e61` | 人間 | 初回リリース（fixtures モード） |
+| v0.2.0 | 2026-07-24 | `aadf9bae` | `bdf0f2b` | CTO代行（/goal 明示承認） | bSDD 取り込み初版ほか（※ `_redirects` ホスト 301 は仕様非対応で不発） |
+| v0.2.1 | 2026-07-24 | `0eacfc04` | `ae3b9fd` | CTO代行（/goal 明示承認） | advanced mode 化 — `obcda-web.pages.dev` 全パス 301 有効化（smoke 実測 PASS） |
+
 ### 🔐 3.6 Cloudflare Access による内部限定公開（実施済み — 2026-07-24 / 人間実行）
 
 Zero Trust の Access **セルフホスト型アプリケーション** `obcda` を本番カスタムドメインへ適用し、内部限定公開へ移行した。
