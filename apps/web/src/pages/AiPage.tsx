@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import type { SearchResultItem } from "@obcda/contracts";
 import { Link } from "react-router-dom";
 
@@ -47,14 +47,21 @@ export function AiPage() {
   usePageMeta("AI質問", "検索した根拠だけを使って回答します");
   const [question, setQuestion] = useState("");
   const [state, setState] = useState<AskState>({ kind: "idle" });
+  const requestSeq = useRef(0);
 
   const ask = (text: string) => {
     const q = text.trim();
     if (!q) return;
+    const seq = ++requestSeq.current;
     setState({ kind: "loading" });
     askAssistant(q, loadSettings().explanationLevel)
-      .then((response) => setState({ kind: "answered", response }))
-      .catch(() => setState({ kind: "error", message: "回答の取得に失敗しました。" }));
+      .then((response) => {
+        if (seq === requestSeq.current) setState({ kind: "answered", response });
+      })
+      .catch(() => {
+        if (seq === requestSeq.current)
+          setState({ kind: "error", message: "回答の取得に失敗しました。" });
+      });
   };
 
   const submit = (event: FormEvent) => {
@@ -77,11 +84,12 @@ export function AiPage() {
           <button
             key={example}
             type="button"
+            disabled={state.kind === "loading"}
             onClick={() => {
               setQuestion(example);
               ask(example);
             }}
-            className="cursor-pointer rounded-[20px] border border-line bg-white px-[13px] py-[7px] font-sans text-[12px] font-medium text-ink"
+            className="cursor-pointer rounded-[20px] border border-line bg-white px-[13px] py-[7px] font-sans text-[12px] font-medium text-ink disabled:cursor-not-allowed disabled:opacity-60"
           >
             {example}
           </button>

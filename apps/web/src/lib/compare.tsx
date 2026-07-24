@@ -32,9 +32,8 @@ function loadIds(): string[] {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((v): v is string => typeof v === "string")
-      .slice(0, COMPARE_MAX);
+    const ids = parsed.filter((v): v is string => typeof v === "string");
+    return [...new Set(ids)].slice(0, COMPARE_MAX);
   } catch {
     return [];
   }

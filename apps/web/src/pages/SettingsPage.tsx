@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { SystemInfo } from "@obcda/contracts";
 
 import { Card, Chip, PrimaryButton } from "../components/ui";
@@ -30,10 +30,15 @@ export function SettingsPage() {
   const [apiSaved, setApiSaved] = useState(false);
   const [apiTest, setApiTest] = useState<ApiTest>({ status: "idle" });
   const [infoState, setInfoState] = useState<InfoState>({ kind: "loading" });
-  const timers = useRef<number[]>([]);
+  const [limitDraft, setLimitDraft] = useState(String(DEFAULT_SETTINGS.searchLimit));
+  const savedTimer = useRef<number | undefined>(undefined);
+  const apiSavedTimer = useRef<number | undefined>(undefined);
+  const testTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    setSettings(loadSettings());
+    const loaded = loadSettings();
+    setSettings(loaded);
+    setLimitDraft(String(loaded.searchLimit));
     let cancelled = false;
     fetchSystemInfo()
       .then((response) => {
@@ -49,52 +54,57 @@ export function SettingsPage() {
               : "システム情報を取得できませんでした。",
         });
       });
-    const cleanupTimers = timers.current;
     return () => {
       cancelled = true;
-      cleanupTimers.forEach((timer) => window.clearTimeout(timer));
+      [savedTimer, apiSavedTimer, testTimer].forEach((timer) =>
+        window.clearTimeout(timer.current),
+      );
     };
   }, []);
 
-  function flash(setter: (value: boolean) => void, ms: number) {
+  function flash(
+    setter: (value: boolean) => void,
+    timer: RefObject<number | undefined>,
+  ) {
+    window.clearTimeout(timer.current);
     setter(true);
-    timers.current.push(window.setTimeout(() => setter(false), ms));
+    timer.current = window.setTimeout(() => setter(false), 2000);
   }
 
   function update(next: AppSettings) {
     setSettings(next);
     saveSettings(next);
-    flash(setSaved, 2000);
+    flash(setSaved, savedTimer);
   }
 
   const testConnection = () => {
+    window.clearTimeout(testTimer.current);
     const key = settings.anthropicApiKey.trim();
     if (!key) {
       setApiTest({ status: "error", message: "⚠️ APIキーを入力してください" });
       return;
     }
     setApiTest({ status: "testing", message: "🔄 接続を確認しています…" });
-    timers.current.push(
-      window.setTimeout(() => {
-        if (key.startsWith("sk-ant-")) {
-          setApiTest({ status: "success", message: "✅ 接続に成功しました" });
-        } else {
-          setApiTest({
-            status: "error",
-            message:
-              "❌ 接続に失敗しました(sk-ant- で始まる形式のキーを指定してください)",
-          });
-        }
-      }, 800),
-    );
+    testTimer.current = window.setTimeout(() => {
+      if (key.startsWith("sk-ant-")) {
+        setApiTest({ status: "success", message: "✅ 接続に成功しました" });
+      } else {
+        setApiTest({
+          status: "error",
+          message:
+            "❌ 接続に失敗しました(sk-ant- で始まる形式のキーを指定してください)",
+        });
+      }
+    }, 800);
   };
 
   const saveApiSettings = () => {
     saveSettings(settings);
-    flash(setApiSaved, 2000);
+    flash(setApiSaved, apiSavedTimer);
   };
 
   const resetApiSettings = () => {
+    window.clearTimeout(testTimer.current);
     const next = { ...settings, anthropicApiKey: "" };
     setSettings(next);
     saveSettings(next);
@@ -156,13 +166,16 @@ export function SettingsPage() {
                 type="number"
                 min={1}
                 max={100}
-                value={settings.searchLimit}
+                value={limitDraft}
                 onChange={(event) => {
-                  const value = Number(event.target.value);
+                  const raw = event.target.value;
+                  setLimitDraft(raw);
+                  const value = Number(raw);
                   if (Number.isInteger(value) && value >= 1 && value <= 100) {
                     update({ ...settings, searchLimit: value });
                   }
                 }}
+                onBlur={() => setLimitDraft(String(settings.searchLimit))}
                 className="mt-1.5 w-[110px] rounded-lg border border-line px-[11px] py-2 font-sans text-[13px]"
               />
             </div>
@@ -194,6 +207,7 @@ export function SettingsPage() {
                 placeholder="sk-ant-..."
                 value={settings.anthropicApiKey}
                 onChange={(event) => {
+                  window.clearTimeout(testTimer.current);
                   setSettings({ ...settings, anthropicApiKey: event.target.value });
                   setApiTest({ status: "idle" });
                 }}

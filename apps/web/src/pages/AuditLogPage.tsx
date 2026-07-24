@@ -59,7 +59,7 @@ export function AuditLogPage() {
   usePageMeta("監査ログ", "APIリクエストの記録(メモリ上・再起動でリセット)");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [reloadFlash, setReloadFlash] = useState(false);
-  const flashTimer = useRef<number>(undefined);
+  const flashTimer = useRef<number | undefined>(undefined);
 
   const load = useCallback(() => {
     setState({ kind: "loading" });
@@ -122,6 +122,8 @@ export function AuditLogPage() {
       };
       win.addEventListener("load", tryPrint);
     }
+    // the opened tab holds its own reference; release ours once printing settled
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   const TH =
