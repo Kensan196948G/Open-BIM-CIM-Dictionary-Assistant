@@ -30,7 +30,7 @@
       "since": "2026-07-24",
       "type": "cloudflare_access_self_hosted",
       "scope": "obcda.mirai-dx-platform.com 全パス（内部限定公開・許可メンバーのみ・未認証は302）",
-      "known_gap": "別名 obcda-web.pages.dev の素通しは _redirects のドメイン301（canonical化）で対処済み — 次回本番デプロイで有効化（それまで残存）"
+      "known_gap": "別名 obcda-web.pages.dev の素通しは _worker.js（pages-worker.ts advanced mode）のホスト判定301で対処 — _redirects のホスト条件は仕様非対応で不発だった（v0.2.0 で実測）。v0.2.1 デプロイで有効化"
     }
   },
   "kpi": {
