@@ -137,6 +137,23 @@ npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 
 > 📝 運用メモ: Claude Code の auto mode classifier は本番デプロイコマンドの AI 代理実行を許可しない（会話内承認では解除不可）。本番デプロイは常に人間がターミナルで実行する — 本手順書の冒頭原則どおり。
 
+### 🔐 3.6 Cloudflare Access による内部限定公開（実施済み — 2026-07-24 / 人間実行）
+
+Zero Trust の Access **セルフホスト型アプリケーション** `obcda` を本番カスタムドメインへ適用し、内部限定公開へ移行した。
+
+| 項目 | 値 |
+| --- | --- |
+| 対象 | `obcda.mirai-dx-platform.com`（全パス — web / `/api/v1/*` とも） |
+| 種別 / セッション | self_hosted / 24h |
+| ポリシー | allow — 許可メールドメイン + 許可個人メール（**具体値は Zero Trust ダッシュボードが正本。本文書には記載しない**） |
+| 未認証時の挙動 | Access ログインへ 302（web/API 共通）。web と API は同一オリジンのため、ログイン後の追加設定は不要 |
+
+運用上の注意:
+
+- ⚠️ **別名 `obcda-web.pages.dev` は Access 対象外**（Access はカスタムドメインのみ保護）。pages.dev URL への直接アクセスは認証なしで通る。閉じるには Pages プロジェクトの **Access policy 有効化**（pages.dev + preview URL を保護する Cloudflare 機能）が必要 — Access ポリシー変更は人間ゲート。有効化すると `preview.obcda-web.pages.dev` の自律検証にも Access **Service Token** が必要になる
+- 📡 外形監視・リリース後 smoke: 未認証アクセスは **302 が正常応答**。200 を期待する従来 smoke は、Service Token（`CF-Access-Client-Id` / `CF-Access-Client-Secret` ヘッダー・発行と保管は人間ゲート）を用いた認証付き確認へ置き換える
+- 🔎 公開範囲を変更（一般公開へ戻す等）する場合は Approval PR 対象（グローバル CLAUDE.md §17）
+
 ---
 
 ## 🔁 4. 更新デプロイ手順
