@@ -100,18 +100,18 @@ Neon プロジェクトは **2026-07-20 にユーザー承認のうえ作成済�
 | 項目 | 値 |
 | --- | --- |
 | URL | `https://preview.obcda-web.pages.dev`（Pages `obcda-web` の preview ブランチ） |
-| 構成 | web の `dist/` + `_worker.js`（`apps/api` の wrangler ビルド成果物）+ `_routes.json`（`/api/*` のみ Worker 起動） |
+| 構成 | web の `dist/` + `_worker.js`（`apps/api/src/pages-worker.ts` の wrangler ビルド成果物 — canonical 301 / `/api/*` 委譲 / ASSETS 配信 + SPA fallback）+ `_routes.json`（`/*` 全パス Worker 起動 = advanced mode） |
 | API 呼び出し | 同一オリジン相対パス（`VITE_API_BASE_URL` 未設定ビルド）— CORS 不要 |
 | DB | fixtures モード（`DATABASE_URL` 未登録のため）。Neon `preview` ブランチへの結線は下記の残ゲート |
 
 再デプロイ手順（CTO 自律可）:
 
 ```bash
-# 1) worker バンドル生成（apps/api で）
-npx wrangler deploy --dry-run --outdir <outdir>
+# 1) worker バンドル生成（apps/api で — Pages 用エントリを明示）
+npx wrangler deploy src/pages-worker.ts --dry-run --outdir <outdir>
 # 2) web ビルド（同一オリジン前提 — .env.local の値が紛れ込まないよう空値を明示）
 VITE_API_BASE_URL= pnpm --filter @obcda/web build
-# 3) dist + _worker.js + _routes.json({"version":1,"include":["/api/*"],"exclude":[]}) を 1 ディレクトリへ
+# 3) dist + _worker.js + _routes.json({"version":1,"include":["/*"],"exclude":[]}) を 1 ディレクトリへ
 # 4) デプロイ
 npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 ```
@@ -150,7 +150,7 @@ Zero Trust の Access **セルフホスト型アプリケーション** `obcda` 
 
 運用上の注意:
 
-- ✅ **別名 `obcda-web.pages.dev` のバイパス対処（2026-07-24 ユーザー指示）**: `apps/web/public/_redirects` 先頭にドメインリダイレクト `https://obcda-web.pages.dev/* → https://obcda.mirai-dx-platform.com/:splat 301` を追加（Pages 公式の per-host redirect。redirects は Functions より先に評価されるため `/api/*` も一本化）。**次回の本番デプロイで有効化**（それまでは pages.dev 素通しが残存）。preview ホストはルール対象外のため自律 preview 検証への影響なし（Service Token 不要）。なお Access アプリへの pages.dev 直接追加は Cloudflare 所有ドメインのため不可（API error 1010・2026-07-24 確認）
+- ✅ **別名 `obcda-web.pages.dev` のバイパス対処（2026-07-24 ユーザー指示）**: `_worker.js`（`apps/api/src/pages-worker.ts`・advanced mode）がホスト判定で `obcda-web.pages.dev` への全リクエスト（`/api/*` 含む）をカスタムドメインへ **301** する。`_routes.json` は `/*` 全パス Worker 起動。preview ホストは対象外のため自律 preview 検証への影響なし（Service Token 不要）。経緯: ①Access アプリへの pages.dev 直接追加は Cloudflare 所有ドメインのため不可（API error 1010）②`_redirects` の `source` は仕様上ファイルパスのみでホスト条件は**無視される**（v0.2.0 で試行し不発を実測）— よって Worker 方式が正 |
 - 📡 外形監視・リリース後 smoke: 未認証アクセスは **302 が正常応答**。200 を期待する従来 smoke は、Service Token（`CF-Access-Client-Id` / `CF-Access-Client-Secret` ヘッダー・発行と保管は人間ゲート）を用いた認証付き確認へ置き換える
 - 🔎 公開範囲を変更（一般公開へ戻す等）する場合は Approval PR 対象（グローバル CLAUDE.md §17）
 

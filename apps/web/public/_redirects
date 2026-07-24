@@ -1,5 +1,5 @@
-# canonical domain: the production pages.dev alias always forwards to the
-# Access-protected custom domain (preview hosts do not match this rule)
-https://obcda-web.pages.dev/* https://obcda.mirai-dx-platform.com/:splat 301
-
+# Host-level canonicalization (pages.dev alias -> custom domain) lives in
+# _worker.js — the _redirects `source` is a file path by spec, so host-based
+# rules here would be silently ignored. This SPA fallback only covers
+# static-only deploys; advanced mode handles it in the worker.
 /* /index.html 200
