@@ -133,17 +133,17 @@ test("compare, learn, AI and sources pages are reachable from the sidebar", asyn
 });
 
 test("recent searches persist on this device and can be cleared", async ({ page }) => {
-  await page.goto("/search?q=ç·å½¢");
+  await page.goto(`/search?q=${encodeURIComponent("線形")}`);
   await expect(
     page.getByRole("link", { name: "IfcAlignment", exact: true }).first(),
   ).toBeVisible();
 
   await page.goto("/search");
-  await expect(page.getByText(/ð æè¿ã®æ¤ç´¢/)).toBeVisible();
-  await page.getByRole("button", { name: "ç·å½¢", exact: true }).click();
+  await expect(page.getByText(/最近の検索/)).toBeVisible();
+  await page.getByRole("button", { name: "線形", exact: true }).click();
   await expect(page).toHaveURL(/\/search\?q=/);
 
   await page.goto("/search");
-  await page.getByRole("button", { name: "å±¥æ­´ãæ¶å»" }).click();
-  await expect(page.getByText("æ¤ç´¢èªãå¥åãã¦ãã ããã")).toBeVisible();
+  await page.getByRole("button", { name: "履歴を消去" }).click();
+  await expect(page.getByText("検索語を入力してください。")).toBeVisible();
 });
