@@ -6,8 +6,8 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "v0.1.0 本番リリース完了（https://obcda.mirai-dx-platform.com）→ 次: #13 実アダプター / #14 実LLM / #15-#17",
-  "phase": "Monitor",
+  "goal": "#13 bSDD アダプター初版完了（PR #28・マージ判定待ち）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
+  "phase": "DeployGate",
   "stable": {
     "achieved": true,
     "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
@@ -30,7 +30,7 @@
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 109,
+    "test_count": 139,
     "e2e_count": 4,
     "security_critical": 0,
     "blocker_count": 0
@@ -55,7 +55,7 @@
     "feature_push_authorized": true,
     "merge_requires_human": true
   },
-  "completed_issues": [1, 2, 3, 4, 5, 6, 7, 12],
+  "completed_issues": [1, 2, 3, 4, 5, 6, 7, 12, 13],
   "blocked_issues": [],
   "pending_human_decisions": [
     "Pages obcda-web preview/production 環境への DATABASE_URL 登録（Neon ブランチ接続へ切替。production は Neon main スキーマ適用が先）",
