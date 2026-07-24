@@ -6,8 +6,8 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "#13 bSDD アダプター初版完了（PR #28・マージ判定待ち）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
-  "phase": "DeployGate",
+  "goal": "#13 bSDD アダプター初版 merge 済み（PR #28 / 35fb317・2026-07-24）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
+  "phase": "Monitor",
   "stable": {
     "achieved": true,
     "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
