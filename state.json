@@ -30,7 +30,7 @@
       "since": "2026-07-24",
       "type": "cloudflare_access_self_hosted",
       "scope": "obcda.mirai-dx-platform.com 全パス（内部限定公開・許可メンバーのみ・未認証は302）",
-      "known_gap": "別名 obcda-web.pages.dev は Access 対象外（対処は人間ゲート: Pages Access policy 有効化）"
+      "known_gap": "別名 obcda-web.pages.dev の素通しは _redirects のドメイン301（canonical化）で対処済み — 次回本番デプロイで有効化（それまで残存）"
     }
   },
   "kpi": {

@@ -150,7 +150,7 @@ Zero Trust の Access **セルフホスト型アプリケーション** `obcda` 
 
 運用上の注意:
 
-- ⚠️ **別名 `obcda-web.pages.dev` は Access 対象外**（Access はカスタムドメインのみ保護）。pages.dev URL への直接アクセスは認証なしで通る。閉じるには Pages プロジェクトの **Access policy 有効化**（pages.dev + preview URL を保護する Cloudflare 機能）が必要 — Access ポリシー変更は人間ゲート。有効化すると `preview.obcda-web.pages.dev` の自律検証にも Access **Service Token** が必要になる
+- ✅ **別名 `obcda-web.pages.dev` のバイパス対処（2026-07-24 ユーザー指示）**: `apps/web/public/_redirects` 先頭にドメインリダイレクト `https://obcda-web.pages.dev/* → https://obcda.mirai-dx-platform.com/:splat 301` を追加（Pages 公式の per-host redirect。redirects は Functions より先に評価されるため `/api/*` も一本化）。**次回の本番デプロイで有効化**（それまでは pages.dev 素通しが残存）。preview ホストはルール対象外のため自律 preview 検証への影響なし（Service Token 不要）。なお Access アプリへの pages.dev 直接追加は Cloudflare 所有ドメインのため不可（API error 1010・2026-07-24 確認）
 - 📡 外形監視・リリース後 smoke: 未認証アクセスは **302 が正常応答**。200 を期待する従来 smoke は、Service Token（`CF-Access-Client-Id` / `CF-Access-Client-Secret` ヘッダー・発行と保管は人間ゲート）を用いた認証付き確認へ置き換える
 - 🔎 公開範囲を変更（一般公開へ戻す等）する場合は Approval PR 対象（グローバル CLAUDE.md §17）
 
