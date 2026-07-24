@@ -11,6 +11,8 @@ import {
   CONCEPT_VERSION_STATUSES,
   DEPRECATION_STATES,
   IFC_MEMBER_KINDS,
+  INGESTION_ITEM_STATUSES,
+  INGESTION_RUN_STATUSES,
   LABEL_TYPES,
   LICENSE_STATUSES,
   LOCATOR_TYPES,
@@ -95,24 +97,14 @@ export const attributeKindEnum = pgEnum("attribute_kind", ATTRIBUTE_KINDS);
 export const deprecationStateEnum = pgEnum("deprecation_state", DEPRECATION_STATES);
 export const trustLevelEnum = pgEnum("trust_level", TRUST_LEVELS);
 export const locatorTypeEnum = pgEnum("locator_type", LOCATOR_TYPES);
-export const ingestionRunStatusEnum = pgEnum("ingestion_run_status", [
-  "running",
-  "succeeded",
-  "partial",
-  "failed",
-]);
-export const ingestionItemStatusEnum = pgEnum("ingestion_item_status", [
-  "discovered",
-  "fetched",
-  "parsed",
-  "normalized",
-  "validated",
-  "review",
-  "published",
-  "unchanged",
-  "rejected",
-  "failed",
-]);
+export const ingestionRunStatusEnum = pgEnum(
+  "ingestion_run_status",
+  INGESTION_RUN_STATUSES,
+);
+export const ingestionItemStatusEnum = pgEnum(
+  "ingestion_item_status",
+  INGESTION_ITEM_STATUSES,
+);
 export const reviewDecisionEnum = pgEnum("review_decision", [
   "pending",
   "approved",
