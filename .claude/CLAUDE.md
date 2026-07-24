@@ -890,11 +890,12 @@ ClaudeOS 起動経路では `lib/model-router.sh` により Opus 4.8=`xhigh`、S
 | ☁️ Cloudflare account | account_id: `4f1e888469df7e0b896bb4e211b12633`（個人アカウント — 表示名・メールは非公開運用情報として記載しない） |
 | 🧪 非本番 preview（web+api 一体） | Pages プロジェクト `obcda-web` の **preview ブランチ** → `https://preview.obcda-web.pages.dev`（`_worker.js` 同梱・同一オリジン `/api/*`、`_routes.json` で `/api/*` のみ Worker 起動） |
 | 🚀 本番（**稼働中** — 2026-07-20 初回デプロイ・v0.1.0） | Web+API 一体: Pages `obcda-web` **production スロット** — カスタムドメイン **`https://obcda.mirai-dx-platform.com`**（2026-07-20 設定・CNAME→`obcda-web.pages.dev` proxied・別名 pages.dev 併存。`_worker.js` 同梱・fixtures モード・デプロイ実行は人間）/ 将来計画: Workers `obcda-api` + カスタムドメイン `obcda-api.mirai-dx-platform.com`（zone/サブドメイン承認済み・`apps/api/wrangler.toml` に routes 設定済み） |
+| 🔐 Access（2026-07-24 人間設定） | セルフホスト型アプリ `obcda` = `obcda.mirai-dx-platform.com` 全パス・セッション 24h・許可メンバーのみ（**内部限定公開**。未認証は 302 → smoke は認証前提へ。ポリシー具体値は Zero Trust ダッシュボードが正本。詳細 `docs/DEPLOYMENT.md` §3.6） |
 | 🌍 zone | `mirai-dx-platform.com`（`e375e651e49a40801a305b89e297bff0`） |
 | 🐘 Neon project | `Open-BIM-CIM-Dictionary-Assistant`（`empty-mud-09532676` / org `org-little-violet-74140600`・2026-07-20 ユーザー承認のうえ作成） |
 | 🐘 Neon branches | `main` = 本番相当（**スキーマ適用は人間ゲート** §8.6）/ `preview`（`br-sweet-recipe-a6p3fn78`）= 非本番検証用（`0001_init.sql` 適用済み + fixtures seed 済み） |
 | 🔑 API token 制約 | Workers Scripts **Write なし**（このため preview は Pages 経由でデプロイ）/ `workers.dev` サブドメイン取得は権限外（グローバル §27.3） |
-| ⏸ 残ゲート（人間） | Pages `obcda-web` preview 環境への `DATABASE_URL` secret 登録（現状 preview API は fixtures モード。登録後に Neon `preview` ブランチへ接続） |
+| ⏸ 残ゲート（人間） | ① Pages `obcda-web` preview 環境への `DATABASE_URL` secret 登録（現状 preview API は fixtures モード。登録後に Neon `preview` ブランチへ接続）② 別名 `obcda-web.pages.dev` の Access バイパス対処（Pages の Access policy 有効化 — 有効化時は preview 自律検証用に Service Token 発行が必要）③ 外形監視用 Access Service Token の発行（認証付き smoke 用） |
 
 <claude-mem-context>
 # Recent Activity

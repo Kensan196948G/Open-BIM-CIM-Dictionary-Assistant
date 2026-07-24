@@ -24,7 +24,14 @@
     "deployed_by": "human（wrangler pages deploy --branch main）",
     "release_tag": "v0.1.0",
     "merge_commit": "a831e6169a75151b7f8b5301d635ba55bb645231",
-    "merged_at": "2026-07-20T04:47:28Z"
+    "merged_at": "2026-07-20T04:47:28Z",
+    "access_protection": {
+      "enabled": true,
+      "since": "2026-07-24",
+      "type": "cloudflare_access_self_hosted",
+      "scope": "obcda.mirai-dx-platform.com 全パス（内部限定公開・許可メンバーのみ・未認証は302）",
+      "known_gap": "別名 obcda-web.pages.dev は Access 対象外（対処は人間ゲート: Pages Access policy 有効化）"
+    }
   },
   "kpi": {
     "success_rate_target": 0.9,
