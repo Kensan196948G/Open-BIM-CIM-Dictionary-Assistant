@@ -405,7 +405,7 @@ flowchart LR
 | 詳細設計 | ✅ 初版 |
 | 実装 | ✅ MVP（fixtures 辞書）+ Neon/Drizzle repository（#12） |
 | 検証 | ✅ 単体・統合 139 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
-| 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.2.1**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
+| 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.3.0**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
 
@@ -415,14 +415,14 @@ flowchart LR
 | `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・比較・エラー・AI 回答） |
 | `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql` / `0001_init.down.sql`（up→down→up round-trip 検証済み） |
 | `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(根拠提示・LLM未設定フォールバック)/出典/版一覧/ヘルス + CORS・セキュリティヘッダー |
-| `apps/web` | ✅ | ホーム・検索結果・用語詳細（React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E |
+| `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索/詳細/比較/学習/AI質問/出典管理/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E 5 spec |
 | `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント（redirect 再検証・レート制御・バックオフ）+ **BsddRestAdapter**（bSDD Dictionary/Class/Property 取得・正規化）+ 実行記録ポート（ingestion_runs/items 相当）+ dry-run CLI (#13) |
 | `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
 | CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
 | 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |
-| 本番デプロイ | ✅ | Pages `obcda-web` production スロット — **`https://obcda.mirai-dx-platform.com`**（カスタムドメイン・**v0.2.1** / merge `ae3b9fd` / 2026-07-24・デプロイ ID `0eacfc04`）。🔐 Cloudflare Access（セルフホスト型）で内部限定公開 — 未認証は 302。別名 `obcda-web.pages.dev` は `_worker.js`（advanced mode）で全パス 301 → カスタムドメインへ一本化（詳細は [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) §3.5-3.6） |
+| 本番デプロイ | ✅ | Pages `obcda-web` production スロット — **`https://obcda.mirai-dx-platform.com`**（カスタムドメイン・**v0.3.0** / merge `042a81a` / 2026-07-24・デプロイ ID `6886433b`）。🔐 Cloudflare Access（セルフホスト型）で内部限定公開 — 未認証は 302。別名 `obcda-web.pages.dev` は `_worker.js`（advanced mode）で全パス 301 → カスタムドメインへ一本化（詳細は [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) §3.5-3.6） |
 | 取り込み・実 LLM | ⏳ | bSDD アダプター初版は完了 (#13)。DB への実記録・定義全文取得はスケールアップ後続、実 LLM は #14 |
 
 ## ⚠️ 免責
