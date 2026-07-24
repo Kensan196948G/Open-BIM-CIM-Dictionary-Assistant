@@ -1,9 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { FetchContext } from "../src/adapters/types";
-import { FetchGuardError, HttpStatusError, guardedFetch } from "../src/fetch/client";
+import {
+  FetchGuardError,
+  type GuardedFetchOptions,
+  HttpStatusError,
+  guardedFetch,
+} from "../src/fetch/client";
 
 const NOW = new Date("2026-07-24T00:00:00Z");
+
+/** Stub DNS: a public documentation-range address (tests never resolve for real). */
+const RESOLVE_PUBLIC = async () => ["203.0.113.10"];
+
+function run(url: string, options: GuardedFetchOptions) {
+  return guardedFetch(url, { resolveAddresses: RESOLVE_PUBLIC, ...options });
+}
 
 function makeCtx(
   fetchImpl: typeof fetch,
@@ -40,7 +52,7 @@ describe("guardedFetch", () => {
         },
       }),
     );
-    const result = await guardedFetch("https://example.org/data.json", {
+    const result = await run("https://example.org/data.json", {
       ctx: makeCtx(fetchImpl as unknown as typeof fetch),
     });
     if (result.kind !== "fetched") throw new Error("expected fetched");
@@ -54,7 +66,7 @@ describe("guardedFetch", () => {
   it("rejects non-allowlisted URLs before any network call", async () => {
     const fetchImpl = vi.fn();
     await expect(
-      guardedFetch("https://evil.example.com/x", {
+      run("https://evil.example.com/x", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       }),
     ).rejects.toMatchObject({
@@ -72,7 +84,7 @@ describe("guardedFetch", () => {
       }),
     );
     await expect(
-      guardedFetch("https://example.org/start", {
+      run("https://example.org/start", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       }),
     ).rejects.toMatchObject({
@@ -90,7 +102,7 @@ describe("guardedFetch", () => {
       }),
     );
     await expect(
-      guardedFetch("https://example.org/loop", {
+      run("https://example.org/loop", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       }),
     ).rejects.toMatchObject({ name: "FetchGuardError", reason: "too_many_redirects" });
@@ -105,7 +117,7 @@ describe("guardedFetch", () => {
       expect(headers["if-modified-since"]).toBe("Mon, 20 Jul 2026 00:00:00 GMT");
       return new Response(null, { status: 304 });
     });
-    const result = await guardedFetch("https://example.org/data.json", {
+    const result = await run("https://example.org/data.json", {
       ctx: makeCtx(fetchImpl as unknown as typeof fetch, {
         etag: '"v1"',
         lastModified: "Mon, 20 Jul 2026 00:00:00 GMT",
@@ -116,11 +128,11 @@ describe("guardedFetch", () => {
 
   it("skips unchanged content via the previous content hash", async () => {
     const fetchImpl = vi.fn(async () => textResponse("same-bytes"));
-    const first = await guardedFetch("https://example.org/f", {
+    const first = await run("https://example.org/f", {
       ctx: makeCtx(fetchImpl as unknown as typeof fetch),
     });
     if (first.kind !== "fetched") throw new Error("expected fetched");
-    const second = await guardedFetch("https://example.org/f", {
+    const second = await run("https://example.org/f", {
       ctx: makeCtx(fetchImpl as unknown as typeof fetch, {
         contentHash: first.artifact.sha256,
       }),
@@ -133,7 +145,7 @@ describe("guardedFetch", () => {
       textResponse("abcdef", { headers: { "content-length": "5" } }),
     );
     await expect(
-      guardedFetch("https://example.org/f", {
+      run("https://example.org/f", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       }),
     ).rejects.toMatchObject({ name: "FetchGuardError", reason: "length_mismatch" });
@@ -142,7 +154,7 @@ describe("guardedFetch", () => {
   it("aborts bodies that exceed the byte ceiling mid-stream", async () => {
     const fetchImpl = vi.fn(async () => textResponse("0123456789"));
     await expect(
-      guardedFetch("https://example.org/big", {
+      run("https://example.org/big", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
         maxBytes: 4,
       }),
@@ -154,7 +166,7 @@ describe("guardedFetch", () => {
       textResponse("irrelevant", { headers: { "content-length": "9999999" } }),
     );
     await expect(
-      guardedFetch("https://example.org/big", {
+      run("https://example.org/big", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
         maxBytes: 1024,
       }),
@@ -169,7 +181,7 @@ describe("guardedFetch", () => {
       textResponse("not a pdf", { headers: { "content-type": "application/pdf" } }),
     );
     await expect(
-      guardedFetch("https://example.org/doc.pdf", {
+      run("https://example.org/doc.pdf", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       }),
     ).rejects.toMatchObject({ name: "FetchGuardError", reason: "magic_mismatch_pdf" });
@@ -181,7 +193,7 @@ describe("guardedFetch", () => {
       .fn()
       .mockResolvedValueOnce(textResponse("slow down", { status: 429 }))
       .mockResolvedValueOnce(textResponse("ok"));
-    const result = await guardedFetch("https://example.org/rate", {
+    const result = await run("https://example.org/rate", {
       ctx: makeCtx(fetchImpl as unknown as typeof fetch),
       sleep: (ms) => {
         sleeps.push(ms);
@@ -199,7 +211,7 @@ describe("guardedFetch", () => {
   it("gives up after maxRetries transient failures", async () => {
     const fetchImpl = vi.fn(async () => textResponse("boom", { status: 503 }));
     await expect(
-      guardedFetch("https://example.org/down", {
+      run("https://example.org/down", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
         maxRetries: 2,
         sleep: noSleep,
@@ -211,7 +223,7 @@ describe("guardedFetch", () => {
   it("does not retry non-transient statuses", async () => {
     const fetchImpl = vi.fn(async () => textResponse("gone", { status: 404 }));
     await expect(
-      guardedFetch("https://example.org/missing", {
+      run("https://example.org/missing", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
         sleep: noSleep,
       }),
@@ -225,13 +237,43 @@ describe("guardedFetch", () => {
       throw cause;
     });
     await expect(
-      guardedFetch("https://example.org/net", {
+      run("https://example.org/net", {
         ctx: makeCtx(fetchImpl as unknown as typeof fetch),
         maxRetries: 1,
         sleep: noSleep,
       }),
     ).rejects.toBe(cause);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects hosts whose DNS answer contains a private address", async () => {
+    const fetchImpl = vi.fn();
+    await expect(
+      run("https://example.org/internal", {
+        ctx: makeCtx(fetchImpl as unknown as typeof fetch),
+        resolveAddresses: async () => ["203.0.113.10", "10.0.0.5"],
+      }),
+    ).rejects.toMatchObject({
+      name: "FetchGuardError",
+      reason: "private_or_loopback_ipv4",
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("treats DNS resolution failure as transient and surfaces the cause", async () => {
+    const cause = new Error("EAI_AGAIN example.org");
+    const fetchImpl = vi.fn();
+    await expect(
+      run("https://example.org/f", {
+        ctx: makeCtx(fetchImpl as unknown as typeof fetch),
+        resolveAddresses: async () => {
+          throw cause;
+        },
+        maxRetries: 1,
+        sleep: noSleep,
+      }),
+    ).rejects.toBe(cause);
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it("exports typed errors", () => {

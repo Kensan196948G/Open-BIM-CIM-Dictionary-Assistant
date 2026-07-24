@@ -207,12 +207,53 @@ describe("runIngestion", () => {
       recorder,
     });
     expect(summaries[0]?.status).toBe("partial");
+    // artifact-level parse failures count into itemCounts alongside item failures
+    expect(summaries[0]?.itemCounts).toEqual({ validated: 1, failed: 1 });
     const run = recorder.runs[0]!;
     expect(run.items.map((item) => item.status)).toEqual(["validated", "failed"]);
     expect(run.items[1]).toMatchObject({
       errorCode: "parse_error",
       itemHash: "a".repeat(64),
     });
+  });
+
+  it("never leaves a run dangling when the recorder itself breaks", async () => {
+    class BrokenRecorder extends InMemoryIngestionRecorder {
+      override recordItem(): Promise<void> {
+        return Promise.reject(new Error("db unavailable"));
+      }
+    }
+    const recorder = new BrokenRecorder();
+    const summaries = await runIngestion({
+      adapter: new ScriptedAdapter({ items: [{ name: "alpha", mode: "ok" }] }),
+      ctx: CTX,
+      recorder,
+    });
+    expect(summaries[0]).toMatchObject({
+      status: "failed",
+      errorSummary: { stage: "pipeline", message: "db unavailable" },
+    });
+    expect(recorder.runs[0]?.status).toBe("failed");
+  });
+
+  it("keeps memory flat when collectRecords is off", async () => {
+    const recorder = new InMemoryIngestionRecorder();
+    const summaries = await runIngestion({
+      adapter: new ScriptedAdapter({
+        items: [
+          { name: "alpha", mode: "ok" },
+          { name: "beta", mode: "ok" },
+        ],
+      }),
+      ctx: CTX,
+      recorder,
+      collectRecords: false,
+    });
+    expect(summaries[0]).toMatchObject({
+      status: "succeeded",
+      itemCounts: { validated: 2, failed: 0 },
+    });
+    expect(summaries[0]?.records).toEqual([]);
   });
 
   it("honors the dry-run item cap", async () => {

@@ -91,6 +91,7 @@ export type BsddAdapterOptions = {
   sleep?: SleepFn;
   random?: () => number;
   nowMs?: () => number;
+  resolveAddresses?: (hostname: string) => Promise<string[]>;
 };
 
 function toNamespaceSegment(value: string): string {
@@ -138,7 +139,7 @@ export class BsddRestAdapter implements SourceAdapter {
   }
 
   private clientOptions(ctx: FetchContext | DiscoverContext) {
-    const { timeoutMs, maxRetries, sleep, random } = this.options;
+    const { timeoutMs, maxRetries, sleep, random, resolveAddresses } = this.options;
     return {
       ctx,
       accept: "application/json",
@@ -147,6 +148,7 @@ export class BsddRestAdapter implements SourceAdapter {
       ...(maxRetries !== undefined ? { maxRetries } : {}),
       ...(sleep ? { sleep } : {}),
       ...(random ? { random } : {}),
+      ...(resolveAddresses ? { resolveAddresses } : {}),
     };
   }
 

@@ -126,6 +126,7 @@ function makeAdapter(): BsddRestAdapter {
     dictionaryUris: [DICT_URI],
     pageSize: 2,
     minIntervalMs: 0,
+    resolveAddresses: async () => ["203.0.113.10"],
   });
 }
 

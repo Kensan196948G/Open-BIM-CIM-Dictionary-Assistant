@@ -23,6 +23,12 @@ export type RunIngestionOptions = {
   recorder: IngestionRecorder;
   /** Stop collecting after this many parsed items per version (dry-run valve). */
   maxItemsPerVersion?: number;
+  /**
+   * Keep validated records in the summary (default true — dry-run inspection).
+   * Full-scale runs that persist via the recorder should pass false so memory
+   * stays flat regardless of dictionary size.
+   */
+  collectRecords?: boolean;
 };
 
 export type VersionRunSummary = {
@@ -86,7 +92,7 @@ async function runVersion(
   version: DiscoveredVersion,
   options: RunIngestionOptions,
 ): Promise<VersionRunSummary> {
-  const { adapter, ctx, recorder, maxItemsPerVersion } = options;
+  const { adapter, ctx, recorder, maxItemsPerVersion, collectRecords = true } = options;
   const startedAt = ctx.now().toISOString();
   const runId = await recorder.startRun({
     sourceCode: adapter.sourceCode,
@@ -121,51 +127,59 @@ async function runVersion(
     });
   };
 
-  let artifacts;
   try {
-    artifacts = await adapter.fetch(version, ctx);
-  } catch (error) {
-    await finish("failed", { stage: "fetch", message: errorMessage(error) });
-    return summary;
-  }
-  summary.fetchedArtifacts = artifacts.length;
-
-  let itemsSeen = 0;
-  let artifactFailures = 0;
-
-  for (const artifact of artifacts) {
-    if (summary.truncated) break;
+    let artifacts;
     try {
-      for await (const parsed of adapter.parse(artifact, {
-        sourceCode: adapter.sourceCode,
-      })) {
-        if (maxItemsPerVersion !== undefined && itemsSeen >= maxItemsPerVersion) {
-          summary.truncated = true;
-          break;
-        }
-        itemsSeen += 1;
-        await processItem(parsed);
-      }
+      artifacts = await adapter.fetch(version, ctx);
     } catch (error) {
-      // parse aborted for this artifact — record it and move to the next one
-      artifactFailures += 1;
-      await recorder.recordItem(runId, {
-        itemHash: artifact.sha256,
-        status: "failed",
-        errorCode: "parse_error",
-        payloadSummary: { url: artifact.url, message: errorMessage(error) },
-      });
+      await finish("failed", { stage: "fetch", message: errorMessage(error) });
+      return summary;
+    }
+    summary.fetchedArtifacts = artifacts.length;
+
+    let itemsSeen = 0;
+
+    for (const artifact of artifacts) {
+      if (summary.truncated) break;
+      try {
+        for await (const parsed of adapter.parse(artifact, {
+          sourceCode: adapter.sourceCode,
+        })) {
+          if (maxItemsPerVersion !== undefined && itemsSeen >= maxItemsPerVersion) {
+            summary.truncated = true;
+            break;
+          }
+          itemsSeen += 1;
+          await processItem(parsed);
+        }
+      } catch (error) {
+        // parse aborted for this artifact — record it and move to the next one
+        summary.itemCounts.failed += 1;
+        await recorder.recordItem(runId, {
+          itemHash: artifact.sha256,
+          status: "failed",
+          errorCode: "parse_error",
+          payloadSummary: { url: artifact.url, message: errorMessage(error) },
+        });
+      }
+    }
+
+    const { validated, failed } = summary.itemCounts;
+    const status: IngestionRunStatus =
+      failed > 0 ? (validated > 0 ? "partial" : "failed") : "succeeded";
+    await finish(status);
+  } catch (error) {
+    // recorder or other unexpected failures must never leave the run "running"
+    if (summary.status === "running") {
+      const errorSummary = { stage: "pipeline", message: errorMessage(error) };
+      try {
+        await finish("failed", errorSummary);
+      } catch {
+        summary.status = "failed";
+        summary.errorSummary = errorSummary;
+      }
     }
   }
-
-  const { validated, failed } = summary.itemCounts;
-  const anyFailure = failed > 0 || artifactFailures > 0;
-  const status: IngestionRunStatus = anyFailure
-    ? validated > 0
-      ? "partial"
-      : "failed"
-    : "succeeded";
-  await finish(status);
   return summary;
 
   async function processItem(parsed: ParsedRecord): Promise<void> {
@@ -207,7 +221,7 @@ async function runVersion(
 
     summary.itemCounts.validated += 1;
     summary.warningCount += verdict.warnings.length;
-    summary.records.push(record);
+    if (collectRecords) summary.records.push(record);
     await recorder.recordItem(runId, {
       itemHash,
       status: "validated",

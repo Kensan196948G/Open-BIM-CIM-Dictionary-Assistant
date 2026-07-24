@@ -11,6 +11,8 @@
  * so tests exercise every branch without touching the network.
  */
 
+import { lookup } from "node:dns/promises";
+
 import type { FetchContext, RawArtifact } from "../adapters/types";
 import {
   DEFAULT_MAX_BYTES,
@@ -18,6 +20,7 @@ import {
   checkActualLength,
   checkDeclaredLength,
   checkMagicNumber,
+  checkResolvedAddress,
   checkSourceUrl,
 } from "./guard";
 import { backoffDelayMs, realSleep, type SleepFn } from "./rate";
@@ -62,7 +65,18 @@ export type GuardedFetchOptions = {
   random?: () => number;
   backoffBaseMs?: number;
   backoffMaxMs?: number;
+  /**
+   * Resolve a hostname to its A/AAAA addresses for the §10.1 resolved-address
+   * guard. Defaults to node:dns lookup; injectable for tests.
+   */
+  resolveAddresses?: (hostname: string) => Promise<string[]>;
 };
+
+/** All A/AAAA records for the host — every one must pass the address guard. */
+async function defaultResolveAddresses(hostname: string): Promise<string[]> {
+  const entries = await lookup(hostname, { all: true });
+  return entries.map((entry) => entry.address);
+}
 
 export type GuardedFetchResult =
   | {
@@ -139,6 +153,7 @@ export async function guardedFetch(
     random,
     backoffBaseMs = 1_000,
     backoffMaxMs = 30_000,
+    resolveAddresses = defaultResolveAddresses,
   } = options;
 
   for (let attempt = 0; ; attempt += 1) {
@@ -167,6 +182,27 @@ export async function guardedFetch(
     for (let redirects = 0; ; redirects += 1) {
       const verdict = checkSourceUrl(currentUrl, ctx.allowedHosts);
       if (!verdict.ok) throw new FetchGuardError(verdict.reason, currentUrl);
+
+      // §10.1 resolved-address guard, re-resolved per request/hop. The actual
+      // connection resolves again (TOCTOU window); true DNS pinning needs a
+      // custom dispatcher and lands with the scale-up work (#29).
+      let addresses: string[];
+      try {
+        addresses = await resolveAddresses(new URL(currentUrl).hostname);
+      } catch (cause) {
+        throw new TimeoutOrNetworkError(cause);
+      }
+      if (addresses.length === 0) {
+        throw new TimeoutOrNetworkError(
+          new Error(`dns: no addresses for ${currentUrl}`),
+        );
+      }
+      for (const address of addresses) {
+        const addressVerdict = checkResolvedAddress(address);
+        if (!addressVerdict.ok) {
+          throw new FetchGuardError(addressVerdict.reason, currentUrl);
+        }
+      }
 
       if (limiter) await limiter.acquire();
 
