@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "#13 bSDD アダプター初版 merge 済み（PR #28 / 35fb317・2026-07-24）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
+  "goal": "v0.2.1 本番リリース完了（bSDD取り込み初版 + Access内部限定公開 + 入口一本化）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
   "phase": "Monitor",
   "stable": {
     "achieved": true,
@@ -19,18 +19,19 @@
     "preview_url": "https://preview.obcda-web.pages.dev",
     "production_url": "https://obcda.mirai-dx-platform.com",
     "production_url_alias": "https://obcda-web.pages.dev",
-    "production_deployment_id": "4ea443b0",
-    "deployed_at": "2026-07-20T06:27:02Z",
-    "deployed_by": "human（wrangler pages deploy --branch main）",
-    "release_tag": "v0.1.0",
-    "merge_commit": "a831e6169a75151b7f8b5301d635ba55bb645231",
-    "merged_at": "2026-07-20T04:47:28Z",
+    "production_deployment_id": "0eacfc04",
+    "deployed_at": "2026-07-24T13:20:00Z",
+    "deployed_by": "CTO代行（/goal 明示承認・wrangler pages deploy --branch main）",
+    "release_tag": "v0.2.1",
+    "merge_commit": "ae3b9fd",
+    "merged_at": "2026-07-24T13:05:00Z",
+    "previous_release": { "tag": "v0.1.0", "deployment_id": "4ea443b0" },
     "access_protection": {
       "enabled": true,
       "since": "2026-07-24",
       "type": "cloudflare_access_self_hosted",
       "scope": "obcda.mirai-dx-platform.com 全パス（内部限定公開・許可メンバーのみ・未認証は302）",
-      "known_gap": "別名 obcda-web.pages.dev の素通しは _worker.js（pages-worker.ts advanced mode）のホスト判定301で対処 — _redirects のホスト条件は仕様非対応で不発だった（v0.2.0 で実測）。v0.2.1 デプロイで有効化"
+      "alias_canonicalized": "obcda-web.pages.dev は _worker.js（advanced mode）で全パス301→カスタムドメイン（v0.2.1・実測済み）。デプロイ毎の <hash>.pages.dev URL のみ301対象外（推測困難・残存リスクとして記録）"
     }
   },
   "kpi": {
