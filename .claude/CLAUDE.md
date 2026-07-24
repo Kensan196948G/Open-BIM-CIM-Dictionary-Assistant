@@ -895,7 +895,7 @@ ClaudeOS 起動経路では `lib/model-router.sh` により Opus 4.8=`xhigh`、S
 | 🐘 Neon project | `Open-BIM-CIM-Dictionary-Assistant`（`empty-mud-09532676` / org `org-little-violet-74140600`・2026-07-20 ユーザー承認のうえ作成） |
 | 🐘 Neon branches | `main` = 本番相当（**スキーマ適用は人間ゲート** §8.6）/ `preview`（`br-sweet-recipe-a6p3fn78`）= 非本番検証用（`0001_init.sql` 適用済み + fixtures seed 済み） |
 | 🔑 API token 制約 | Workers Scripts **Write なし**（このため preview は Pages 経由でデプロイ）/ `workers.dev` サブドメイン取得は権限外（グローバル §27.3） |
-| ⏸ 残ゲート（人間） | ① Pages `obcda-web` preview 環境への `DATABASE_URL` secret 登録（現状 preview API は fixtures モード。登録後に Neon `preview` ブランチへ接続）② 別名 `obcda-web.pages.dev` の Access バイパス対処（Pages の Access policy 有効化 — 有効化時は preview 自律検証用に Service Token 発行が必要）③ 外形監視用 Access Service Token の発行（認証付き smoke 用） |
+| ⏸ 残ゲート（人間） | ① Pages `obcda-web` preview 環境への `DATABASE_URL` secret 登録（現状 preview API は fixtures モード。登録後に Neon `preview` ブランチへ接続）② **本番再デプロイ**（pages.dev→カスタムドメイン 301 の `_redirects` を有効化する。コードは main 反映済み前提）③ 外形監視用 Access Service Token の発行（カスタムドメインの認証付き smoke 用） |
 
 <claude-mem-context>
 # Recent Activity

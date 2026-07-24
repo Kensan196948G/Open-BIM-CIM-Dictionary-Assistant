@@ -1,1 +1,5 @@
+# canonical domain: the production pages.dev alias always forwards to the
+# Access-protected custom domain (preview hosts do not match this rule)
+https://obcda-web.pages.dev/* https://obcda.mirai-dx-platform.com/:splat 301
+
 /* /index.html 200
