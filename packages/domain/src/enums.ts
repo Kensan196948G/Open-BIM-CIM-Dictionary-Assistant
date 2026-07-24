@@ -110,3 +110,26 @@ export type LocatorType = (typeof LOCATOR_TYPES)[number];
 
 export const RELATION_REVIEW_STATUSES = ["automatic", "reviewed", "rejected"] as const;
 export type RelationReviewStatus = (typeof RELATION_REVIEW_STATUSES)[number];
+
+export const INGESTION_RUN_STATUSES = [
+  "running",
+  "succeeded",
+  "partial",
+  "failed",
+] as const;
+export type IngestionRunStatus = (typeof INGESTION_RUN_STATUSES)[number];
+
+/** Item lifecycle per 詳細設計仕様書 §4.2 状態遷移. */
+export const INGESTION_ITEM_STATUSES = [
+  "discovered",
+  "fetched",
+  "parsed",
+  "normalized",
+  "validated",
+  "review",
+  "published",
+  "unchanged",
+  "rejected",
+  "failed",
+] as const;
+export type IngestionItemStatus = (typeof INGESTION_ITEM_STATUSES)[number];

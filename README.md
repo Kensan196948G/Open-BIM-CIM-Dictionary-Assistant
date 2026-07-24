@@ -273,6 +273,12 @@ pnpm --filter @obcda/api dev
 pnpm --filter @obcda/web dev
 ```
 
+```bash
+# bSDD 取り込み dry-run（DB 不要 — bSDD 公開 API から取得し正規化レコードと実行記録を表示）
+pnpm --filter @obcda/ingestion dry-run -- --max-items 50
+# 主なオプション: --dictionary <bSDD辞書URI> --page-size 100 --max-pages 1 --samples 3
+```
+
 ### 6. 品質確認
 
 ```bash
@@ -410,14 +416,14 @@ flowchart LR
 | `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql` / `0001_init.down.sql`（up→down→up round-trip 検証済み） |
 | `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(根拠提示・LLM未設定フォールバック)/出典/版一覧/ヘルス + CORS・セキュリティヘッダー |
 | `apps/web` | ✅ | ホーム・検索結果・用語詳細（React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E |
-| `apps/ingestion` | 🔨 | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）。実アダプターは後続 (#13) |
+| `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント（redirect 再検証・レート制御・バックオフ）+ **BsddRestAdapter**（bSDD Dictionary/Class/Property 取得・正規化）+ 実行記録ポート（ingestion_runs/items 相当）+ dry-run CLI (#13) |
 | `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
 | CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
 | 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |
 | 本番デプロイ | ✅ | Pages `obcda-web` production スロット — **`https://obcda.mirai-dx-platform.com`**（カスタムドメイン・別名 `obcda-web.pages.dev`・**v0.1.0** / merge `a831e61` / 2026-07-20 人間実行）— smoke 9 項目 PASS・TLS 正常・`_worker.js` 非公開確認 |
-| 取り込み・実 LLM | ⏳ | 後続 Issue #13/#14（アダプター差し替えで対応） |
+| 取り込み・実 LLM | ⏳ | bSDD アダプター初版は完了 (#13)。DB への実記録・定義全文取得はスケールアップ後続、実 LLM は #14 |
 
 ## ⚠️ 免責
 
