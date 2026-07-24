@@ -15,6 +15,10 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import app from "../src/index";
+import { createApp } from "../src/app";
+import { dictionaryFixture } from "../src/fixtures";
+import { InMemoryDictionaryRepository } from "../src/repositories/inMemory";
+import type { DictionaryRepository } from "../src/repositories/types";
 
 const IFC_ALIGNMENT_ID = "018f0000-0000-7000-8000-000000000001";
 const UNKNOWN_ID = "018f0000-0000-7000-8000-0000000000ff";
@@ -364,5 +368,57 @@ describe("GET /api/v1/system/audit-events", () => {
     expect(res.status).toBe(400);
     const big = await getJson("/api/v1/system/audit-events?limit=501");
     expect(big.res.status).toBe(400);
+  });
+});
+
+describe("search event recording (Â§3.3 search_events_daily)", () => {
+  function appWithRecorder(calls: [string, boolean][]) {
+    const base = new InMemoryDictionaryRepository(dictionaryFixture);
+    const recording: DictionaryRepository = {
+      search: (query) => base.search(query),
+      getConceptById: (id) => base.getConceptById(id),
+      getRelations: (id) => base.getRelations(id),
+      listSources: () => base.listSources(),
+      getSourceVersions: (id) => base.getSourceVersions(id),
+      getStats: () => base.getStats(),
+      isReady: () => base.isReady(),
+      recordSearchEvent: async (query, zeroResult) => {
+        calls.push([query, zeroResult]);
+      },
+    };
+    return createApp(recording);
+  }
+
+  it("records query and zero-result flag when the repository supports it", async () => {
+    const calls: [string, boolean][] = [];
+    const recordingApp = appWithRecorder(calls);
+
+    const hit = await recordingApp.request("/api/v1/search?q=IfcAlignment");
+    expect(hit.status).toBe(200);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(calls).toEqual([["IfcAlignment", false]]);
+
+    const miss = await recordingApp.request(
+      `/api/v1/search?q=${encodeURIComponent("å­å¨ããªãç¨èªxyz")}`,
+    );
+    expect(miss.status).toBe(200);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(calls[1]).toEqual(["å­å¨ããªãç¨èªxyz", true]);
+  });
+
+  it("keeps serving searches when the recorder itself rejects", async () => {
+    const base = new InMemoryDictionaryRepository(dictionaryFixture);
+    const failing: DictionaryRepository = {
+      search: (query) => base.search(query),
+      getConceptById: (id) => base.getConceptById(id),
+      getRelations: (id) => base.getRelations(id),
+      listSources: () => base.listSources(),
+      getSourceVersions: (id) => base.getSourceVersions(id),
+      getStats: () => base.getStats(),
+      isReady: () => base.isReady(),
+      recordSearchEvent: () => Promise.reject(new Error("db down")),
+    };
+    const res = await createApp(failing).request("/api/v1/search?q=IfcAlignment");
+    expect(res.status).toBe(200);
   });
 });

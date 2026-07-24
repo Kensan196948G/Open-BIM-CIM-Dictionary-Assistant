@@ -116,7 +116,7 @@ VITE_API_BASE_URL= pnpm --filter @obcda/web build
 npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 ```
 
-⏸ **残ゲート（人間）**: Pages `obcda-web` の **preview 環境**へ `DATABASE_URL`（Neon `preview` ブランチの接続文字列）を登録する。
+✅ **解消済み（2026-07-24）**: Pages `obcda-web` の **preview 環境**へ `DATABASE_URL`（Neon `preview` ブランチ・pooled）を登録済み — Pages API `deployment_configs.preview.env_vars` PATCH（`secret_text`）を ctx サンドボックス内で実行し、値はどこにも表示していない。preview は database モードで稼働（実 DB 検索 + search_events_daily 記録を実測確認）。
 `wrangler pages secret put` は production 環境専用のため、ダッシュボード（Workers & Pages → obcda-web → Settings → Environment variables → Preview）または Pages API の `deployment_configs.preview.env_vars` PATCH で行う。登録後に再デプロイすると preview API が Neon 接続へ切り替わる（コード変更不要 — `resolveRepository` が自動判定）。
 
 ### 🚀 3.5 本番デプロイ（実施済み — 2026-07-20 / 人間実行・v0.1.0）
@@ -134,6 +134,8 @@ npx wrangler pages deploy <dir> --project-name obcda-web --branch preview
 デプロイ後 smoke（全 PASS）: `/`（200・TLS 検証成功）/ `/api/v1/health/live` / `/api/v1/health/ready` / 検索（`線形` 3 件・`IfcAlignment` 5 件）/ 概念詳細 / 関連 / 出典 3 件 / `_worker.js` 非公開（SPA fallback が返る）/ レイテンシ 0.1〜0.2 秒。
 
 カスタムドメイン設定（2026-07-20・グローバル CLAUDE.md §27.1 特則によりユーザー指定サブドメインで実行）: Pages ドメイン追加 API + zone `mirai-dx-platform.com` へ CNAME `obcda` → `obcda-web.pages.dev`（proxied）。約 100 秒で active（Google CA 証明書）。カスタムドメイン smoke（トップ / health / 検索 / 概念詳細）全 200。API は同一オリジン相対パス呼び出しのため CORS 設定変更は不要。
+
+> 📝 運用メモ: `preview.obcda-web.pages.dev` エイリアスの新デプロイへの切替には伝播遅延がある — デプロイ直後の smoke は**デプロイ毎の直接 URL**（`https://<id>.obcda-web.pages.dev`）で行うこと。
 
 > 📝 運用メモ: Claude Code の auto mode classifier は本番デプロイコマンドの AI 代理実行を許可しない（会話内承認では解除不可）。本番デプロイは常に人間がターミナルで実行する — 本手順書の冒頭原則どおり。
 

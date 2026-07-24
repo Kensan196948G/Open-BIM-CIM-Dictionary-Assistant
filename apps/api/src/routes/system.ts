@@ -21,7 +21,9 @@ export function createSystemRoutes(auditLog: AuditLog, llmProviderId: string) {
       data: {
         name: "Open BIM/CIM Dictionary Assistant",
         version: packageJson.version,
-        environment: "fixtures",
+        // reflects the actual backing store wiring (fixtures until a
+        // DATABASE_URL binding switches the repository to Neon)
+        environment: c.env?.DATABASE_URL ? "database" : "fixtures",
         llmProvider: llmProviderId,
         startedAt: STARTED_AT,
         counts: {

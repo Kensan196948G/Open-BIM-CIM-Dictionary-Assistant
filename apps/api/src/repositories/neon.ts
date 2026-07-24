@@ -17,6 +17,7 @@ import type {
   TermLabel,
 } from "@obcda/contracts";
 import { concepts, sources, sourceVersions } from "@obcda/db";
+import { compactFold } from "@obcda/domain";
 import type {
   ConceptType,
   LicenseStatus,
@@ -302,6 +303,29 @@ export class NeonDictionaryRepository implements DictionaryRepository {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * §3.3 search_events_daily: bump the day×query_hash counters. The hash is
+   * SHA-256 over the folded query so spelling variants aggregate and the raw
+   * query text never reaches the database (§8.3 privacy rule).
+   */
+  async recordSearchEvent(query: string, zeroResult: boolean): Promise<void> {
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(compactFold(query)),
+    );
+    const queryHash = [...new Uint8Array(digest)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+    const zeroIncrement = zeroResult ? 1 : 0;
+    await this.db.execute(sql`
+      INSERT INTO search_events_daily (day, query_hash, search_count, zero_result_count)
+      VALUES (CURRENT_DATE, ${queryHash}, 1, ${zeroIncrement})
+      ON CONFLICT (day, query_hash) DO UPDATE SET
+        search_count = search_events_daily.search_count + 1,
+        zero_result_count = search_events_daily.zero_result_count + ${zeroIncrement}
+    `);
   }
 
   // Label queries join current_version: only labels tied to the concept's
