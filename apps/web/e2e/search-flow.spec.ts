@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * Acceptance flow for Issue #6 (SCR-01 → SCR-02 → SCR-03):
  * home → search → concept detail → source/provenance visible.
+ * Layout follows the Claude Design dc prototype (sidebar + topbar shell).
  */
 
 test("home renders search box and featured terms", async ({ page }) => {
@@ -11,7 +12,7 @@ test("home renders search box and featured terms", async ({ page }) => {
     page.getByRole("heading", { name: /探せる・分かる・根拠へ戻れる/ }),
   ).toBeVisible();
   await expect(page.getByRole("search")).toBeVisible();
-  await expect(page.getByRole("link", { name: "IfcAlignment" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "IfcAlignment" })).toBeVisible();
 });
 
 test("search 線形 → open IfcAlignment detail → provenance shown", async ({ page }) => {
@@ -26,17 +27,15 @@ test("search 線形 → open IfcAlignment detail → provenance shown", async ({
   await expect(page).toHaveURL(
     new RegExp(`/search\\?q=${encodeURIComponent("線形")}$`),
   );
-  const resultLink = page.getByRole("link", { name: /IfcAlignment IFC entity/ });
+  const resultLink = page.getByRole("link", { name: "IfcAlignment", exact: true });
   await expect(resultLink.first()).toBeVisible();
 
   // exact-name card navigates to the concept detail
-  await page
-    .getByRole("link", { name: /^IfcAlignment IFC entity/ })
-    .first()
-    .click();
+  await resultLink.first().click();
   await expect(page).toHaveURL(/\/concepts\//);
+  // the topbar (level-1 heading) shows the concept name
   await expect(
-    page.getByRole("heading", { name: "IfcAlignment", exact: true }),
+    page.getByRole("heading", { name: "IfcAlignment", exact: true, level: 1 }),
   ).toBeVisible();
 
   // §8.2: やさしい説明 and 出典 (publisher + 原典リンク) must be present
@@ -57,7 +56,11 @@ test("search 線形 → open IfcAlignment detail → provenance shown", async ({
   await page.getByRole("link", { name: "IfcAlignmentHorizontal", exact: true }).click();
   await expect(page).toHaveURL(/\/concepts\//);
   await expect(
-    page.getByRole("heading", { name: "IfcAlignmentHorizontal", exact: true }),
+    page.getByRole("heading", {
+      name: "IfcAlignmentHorizontal",
+      exact: true,
+      level: 1,
+    }),
   ).toBeVisible();
 });
 
@@ -69,7 +72,7 @@ test("zero-result search shows guidance instead of an empty page", async ({ page
   ).toBeVisible();
 });
 
-test("settings and audit-log pages are reachable from the header nav", async ({
+test("settings and audit-log pages are reachable from the sidebar nav", async ({
   page,
 }) => {
   await page.goto("/");
@@ -79,16 +82,52 @@ test("settings and audit-log pages are reachable from the header nav", async ({
     "/favicon.svg",
   );
 
-  await page.getByRole("link", { name: /設定/ }).click();
-  await expect(page.getByRole("heading", { name: /システム設定/ })).toBeVisible();
+  await page.getByRole("link", { name: "設定", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "設定", exact: true, level: 1 }),
+  ).toBeVisible();
   // system info card loads from the API
-  await expect(page.getByText(/サンプル辞書（fixtures）/)).toBeVisible();
+  await expect(page.getByText(/サンプル辞書\(fixtures\)/)).toBeVisible();
 
   await page.getByRole("link", { name: /監査ログ/ }).click();
-  await expect(page.getByRole("heading", { name: /監査ログ/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "監査ログ", exact: true, level: 1 }),
+  ).toBeVisible();
   // the earlier system-info request is already recorded in the trail
   await expect(page.getByRole("table")).toBeVisible();
   await expect(
     page.getByRole("cell", { name: "/api/v1/system/info" }).first(),
   ).toBeVisible();
+});
+
+test("compare, learn, AI and sources pages are reachable from the sidebar", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await page.getByRole("link", { name: "比較", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "比較", exact: true, level: 1 }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/比較する用語を検索結果または上のメニュー/),
+  ).toBeVisible();
+
+  await page.getByRole("link", { name: "学習", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "学習", exact: true, level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /確認問題/ })).toBeVisible();
+
+  await page.getByRole("link", { name: "AI質問", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "AI質問", exact: true, level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /質問する/ })).toBeVisible();
+
+  await page.getByRole("link", { name: "出典・取り込み管理", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "出典・取り込み管理", exact: true, level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByText(/情報源一覧/)).toBeVisible();
 });
