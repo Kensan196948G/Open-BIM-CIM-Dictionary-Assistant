@@ -5,7 +5,7 @@
 | 項目 | 内容 |
 | --- | --- |
 | 文書種別 | 詳細設計仕様書 |
-| 版 | 1.0.0 |
+| 版 | 1.1.0 |
 | 作成日 | 2026-07-18 |
 | 対象 | MVP＋Phase 2拡張点 |
 | 前提 | 公開データのみ。GitHubをコード正本、NeonをDB正本とする |
@@ -499,7 +499,7 @@ export interface LlmProvider {
 }
 ```
 
-APIキー、モデルID、リージョン、保持設定は環境変数で指定し、Webクライアントへ公開しない。モデル更新は評価セット合格後に昇格する。
+APIキーは Web クライアントへ公開しない。優先順位は (1) 環境変数 `LLM_API_KEY` / `ANTHROPIC_API_KEY`（secret）、(2) 管理者設定画面から保存した値（サーバー側 `app_settings` テーブル・migration `0002_ai_settings.sql`）。モデルIDは `ANTHROPIC_MODEL`（既定 `claude-sonnet-4-6`）。管理系 `/admin/ai-settings`（状態取得/保存/削除/接続テスト）は Cloudflare Access 必須とし、レスポンスへキーを含めず末尾4文字のみ提示する。モデル更新は評価セット合格後に昇格する。
 
 ### 6.5 AI評価
 
@@ -545,6 +545,10 @@ APIキー、モデルID、リージョン、保持設定は環境変数で指定
 | GET | `/admin/ingestions/{id}` | ジョブ状態 | Editor以上 |
 | POST | `/admin/reviews/{id}/approve` | 公開承認 | Reviewer以上 |
 | POST | `/admin/versions/{id}/rollback` | ロールバック | Admin |
+| GET | `/admin/ai-settings` | AI設定状態（キーは返さない） | Admin |
+| POST | `/admin/ai-settings` | Anthropic API キー保存 | Admin |
+| DELETE | `/admin/ai-settings` | Anthropic API キー削除 | Admin |
+| POST | `/admin/ai-settings/test` | Anthropic 接続テスト | Admin |
 
 ### 7.3 検索例
 

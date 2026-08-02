@@ -4,3 +4,4 @@ export * from "./concept";
 export * from "./assistant";
 export * from "./compare";
 export * from "./system";
+export * from "./admin";

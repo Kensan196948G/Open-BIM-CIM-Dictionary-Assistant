@@ -12,7 +12,7 @@ import type { AuditLog } from "../services/auditLog";
 
 const STARTED_AT = new Date().toISOString();
 
-export function createSystemRoutes(auditLog: AuditLog, llmProviderId: string) {
+export function createSystemRoutes(auditLog: AuditLog) {
   const routes = new Hono<AppEnv>();
 
   routes.get("/info", async (c) => {
@@ -22,7 +22,7 @@ export function createSystemRoutes(auditLog: AuditLog, llmProviderId: string) {
         name: "Open BIM/CIM Dictionary Assistant",
         version: packageJson.version,
         environment: "fixtures",
-        llmProvider: llmProviderId,
+        llmProvider: c.get("llmProvider").id,
         startedAt: STARTED_AT,
         counts: {
           concepts: stats.concepts,

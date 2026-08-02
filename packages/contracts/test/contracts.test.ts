@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   AssistantAnswerSchema,
+  AiSettingsStatusSchema,
   ErrorResponseSchema,
+  SaveAiSettingsSchema,
   SearchQuerySchema,
   SearchResultItemSchema,
+  TestAiSettingsSchema,
 } from "../src";
 
 describe("SearchQuerySchema", () => {
@@ -83,6 +86,33 @@ describe("ErrorResponseSchema", () => {
         error: { code: "BOOM", message: "x", requestId: "r" },
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("AI settings schemas (§6.4)", () => {
+  it("exposes only configured state — never the key itself", () => {
+    const status = AiSettingsStatusSchema.parse({
+      configured: true,
+      source: "stored",
+      maskedKey: "…abcd",
+      model: "claude-sonnet-4-6",
+    });
+    expect(status.maskedKey).toBe("…abcd");
+    expect(JSON.stringify(status)).not.toContain("sk-ant-");
+  });
+
+  it("accepts a plausible Anthropic key for save/test", () => {
+    expect(
+      SaveAiSettingsSchema.safeParse({ apiKey: "sk-ant-api03-abcdef" }).success,
+    ).toBe(true);
+    expect(TestAiSettingsSchema.parse({}).apiKey).toBeUndefined();
+    expect(TestAiSettingsSchema.parse({ apiKey: "sk-ant-api03-abcdef" }).apiKey).toBe(
+      "sk-ant-api03-abcdef",
+    );
+  });
+
+  it("rejects too-short keys", () => {
+    expect(SaveAiSettingsSchema.safeParse({ apiKey: "short" }).success).toBe(false);
   });
 });
 
