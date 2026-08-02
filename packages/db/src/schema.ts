@@ -460,3 +460,10 @@ export const searchEventsDaily = pgTable(
   },
   (table) => [primaryKey({ columns: [table.day, table.queryHash] })],
 );
+
+// admin-managed runtime settings (§6.4 AI設定 — key/value, single-row entries)
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

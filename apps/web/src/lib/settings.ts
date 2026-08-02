@@ -1,6 +1,8 @@
 /**
- * Client-side preferences (§5.4: MVP keeps personal settings on the device).
+ * Client-side preferences (§5.4: personal settings stay on the device).
  * Stored in localStorage — no account, nothing leaves the browser.
+ * The Anthropic API key is deliberately NOT here: it is admin-managed
+ * server-side (設定 → AI設定(Anthropic)) and never kept in the browser.
  */
 
 export type AppSettings = {
@@ -8,14 +10,11 @@ export type AppSettings = {
   explanationLevel: "beginner" | "technical";
   /** Search result page size (API caps at 100). */
   searchLimit: number;
-  /** Anthropic API key for the AI answer feature — kept on this device only. */
-  anthropicApiKey: string;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   explanationLevel: "beginner",
   searchLimit: 20,
-  anthropicApiKey: "",
 };
 
 const STORAGE_KEY = "obcda.settings.v1";
@@ -33,8 +32,6 @@ export function loadSettings(): AppSettings {
         Number.isInteger(limit) && limit >= 1 && limit <= 100
           ? limit
           : DEFAULT_SETTINGS.searchLimit,
-      anthropicApiKey:
-        typeof parsed.anthropicApiKey === "string" ? parsed.anthropicApiKey : "",
     };
   } catch {
     return DEFAULT_SETTINGS;

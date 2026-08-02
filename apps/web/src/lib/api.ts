@@ -1,4 +1,5 @@
 import type {
+  AiSettingsStatusResponse,
   AssistantAnswer,
   AuditEventsResponse,
   CompareResponse,
@@ -11,6 +12,7 @@ import type {
   SourceVersionsResponse,
   SourcesResponse,
   SystemInfoResponse,
+  TestAiSettingsResponse,
 } from "@obcda/contracts";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -28,7 +30,7 @@ export class ApiError extends Error {
 
 async function request<T>(
   path: string,
-  init?: { method?: "POST"; body?: unknown },
+  init?: { method?: "POST" | "DELETE"; body?: unknown },
 ): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: init?.method ?? "GET",
@@ -105,6 +107,34 @@ export function compareConcepts(ids: string[]): Promise<CompareResponse> {
   return request<CompareResponse>("/api/v1/compare", {
     method: "POST",
     body: { ids },
+  });
+}
+
+/** GET /api/v1/admin/ai-settings — configured state only (never the key). */
+export function fetchAiSettings(): Promise<AiSettingsStatusResponse> {
+  return request<AiSettingsStatusResponse>("/api/v1/admin/ai-settings");
+}
+
+/** POST /api/v1/admin/ai-settings — persist the admin-entered API key. */
+export function saveAiSettings(apiKey: string): Promise<AiSettingsStatusResponse> {
+  return request<AiSettingsStatusResponse>("/api/v1/admin/ai-settings", {
+    method: "POST",
+    body: { apiKey },
+  });
+}
+
+/** DELETE /api/v1/admin/ai-settings — clear the stored API key. */
+export function resetAiSettings(): Promise<AiSettingsStatusResponse> {
+  return request<AiSettingsStatusResponse>("/api/v1/admin/ai-settings", {
+    method: "DELETE",
+  });
+}
+
+/** POST /api/v1/admin/ai-settings/test — real Anthropic connectivity check. */
+export function testAiSettings(apiKey?: string): Promise<TestAiSettingsResponse> {
+  return request<TestAiSettingsResponse>("/api/v1/admin/ai-settings/test", {
+    method: "POST",
+    body: apiKey ? { apiKey } : {},
   });
 }
 

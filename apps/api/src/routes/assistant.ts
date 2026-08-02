@@ -8,7 +8,6 @@ import { Hono } from "hono";
 
 import type { AppEnv } from "../middleware/context";
 import { errorResponse, zodDetails } from "../middleware/errors";
-import type { LlmProvider } from "../services/llm";
 
 export type AssistantAnswerResponse = {
   data: {
@@ -25,7 +24,7 @@ export type AssistantAnswerResponse = {
  * ids are rejected server-side (§6.3) — the answer degrades to
  * insufficientEvidence instead of shipping unverifiable statements.
  */
-export function createAssistantRoutes(provider: LlmProvider) {
+export function createAssistantRoutes() {
   const routes = new Hono<AppEnv>();
 
   routes.post("/answers", async (c) => {
@@ -58,7 +57,7 @@ export function createAssistantRoutes(provider: LlmProvider) {
 
     let answer: AssistantAnswer;
     try {
-      answer = await provider.answer({
+      answer = await c.get("llmProvider").answer({
         question: parsed.data.question,
         explanationLevel: parsed.data.explanationLevel,
         evidence: outcome.items.map((item) => ({

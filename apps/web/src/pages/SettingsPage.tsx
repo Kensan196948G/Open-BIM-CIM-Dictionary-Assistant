@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import type { SystemInfo } from "@obcda/contracts";
+import type { AiSettingsStatus, SystemInfo } from "@obcda/contracts";
 
 import { Card, Chip, PrimaryButton } from "../components/ui";
-import { ApiError, fetchSystemInfo } from "../lib/api";
+import {
+  ApiError,
+  fetchAiSettings,
+  fetchSystemInfo,
+  resetAiSettings,
+  saveAiSettings,
+  testAiSettings,
+} from "../lib/api";
 import { formatDateTimeJa } from "../lib/labels";
 import {
   DEFAULT_SETTINGS,
@@ -23,23 +30,46 @@ type ApiTest =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
+type AiSettingsState =
+  | { kind: "loading" }
+  | { kind: "loaded"; status: AiSettingsStatus }
+  | { kind: "error"; message: string };
+
 export function SettingsPage() {
-  usePageMeta("設定", "表示設定・システム情報");
+  usePageMeta("設定", "表示設定・AI設定(Anthropic)・システム情報");
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
   const [apiSaved, setApiSaved] = useState(false);
   const [apiTest, setApiTest] = useState<ApiTest>({ status: "idle" });
+  const [aiSettingsState, setAiSettingsState] = useState<AiSettingsState>({
+    kind: "loading",
+  });
+  const [apiKeyDraft, setApiKeyDraft] = useState("");
+  const [apiBusy, setApiBusy] = useState(false);
   const [infoState, setInfoState] = useState<InfoState>({ kind: "loading" });
   const [limitDraft, setLimitDraft] = useState(String(DEFAULT_SETTINGS.searchLimit));
   const savedTimer = useRef<number | undefined>(undefined);
   const apiSavedTimer = useRef<number | undefined>(undefined);
-  const testTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const loaded = loadSettings();
     setSettings(loaded);
     setLimitDraft(String(loaded.searchLimit));
     let cancelled = false;
+    fetchAiSettings()
+      .then((response) => {
+        if (!cancelled) setAiSettingsState({ kind: "loaded", status: response.data });
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setAiSettingsState({
+          kind: "error",
+          message:
+            error instanceof ApiError
+              ? error.message
+              : "AI設定を取得できませんでした。",
+        });
+      });
     fetchSystemInfo()
       .then((response) => {
         if (!cancelled) setInfoState({ kind: "loaded", info: response.data });
@@ -56,7 +86,7 @@ export function SettingsPage() {
       });
     return () => {
       cancelled = true;
-      [savedTimer, apiSavedTimer, testTimer].forEach((timer) =>
+      [savedTimer, apiSavedTimer].forEach((timer) =>
         window.clearTimeout(timer.current),
       );
     };
@@ -77,38 +107,84 @@ export function SettingsPage() {
     flash(setSaved, savedTimer);
   }
 
-  const testConnection = () => {
-    window.clearTimeout(testTimer.current);
-    const key = settings.anthropicApiKey.trim();
+  const configured =
+    aiSettingsState.kind === "loaded" && aiSettingsState.status.configured;
+
+  const testConnection = async () => {
+    const key = apiKeyDraft.trim();
+    if (!key && !configured) {
+      setApiTest({ status: "error", message: "⚠️ APIキーを入力してください" });
+      return;
+    }
+    setApiBusy(true);
+    setApiTest({ status: "testing", message: "🔄 Anthropic API に接続しています…" });
+    try {
+      const response = await testAiSettings(key || undefined);
+      setApiTest({
+        status: "success",
+        message: `✅ 接続に成功しました（${response.data.model}・${response.data.latencyMs}ms）`,
+      });
+    } catch (error: unknown) {
+      setApiTest({
+        status: "error",
+        message:
+          error instanceof ApiError ? `❌ ${error.message}` : "❌ 接続に失敗しました",
+      });
+    } finally {
+      setApiBusy(false);
+    }
+  };
+
+  const saveApiSettings = async () => {
+    const key = apiKeyDraft.trim();
     if (!key) {
       setApiTest({ status: "error", message: "⚠️ APIキーを入力してください" });
       return;
     }
-    setApiTest({ status: "testing", message: "🔄 接続を確認しています…" });
-    testTimer.current = window.setTimeout(() => {
-      if (key.startsWith("sk-ant-")) {
-        setApiTest({ status: "success", message: "✅ 接続に成功しました" });
-      } else {
-        setApiTest({
-          status: "error",
-          message:
-            "❌ 接続に失敗しました(sk-ant- で始まる形式のキーを指定してください)",
-        });
-      }
-    }, 800);
+    setApiBusy(true);
+    try {
+      const response = await saveAiSettings(key);
+      setApiKeyDraft("");
+      setAiSettingsState({ kind: "loaded", status: response.data });
+      setApiTest({ status: "idle" });
+      flash(setApiSaved, apiSavedTimer);
+    } catch (error: unknown) {
+      setApiTest({
+        status: "error",
+        message:
+          error instanceof ApiError ? `❌ ${error.message}` : "❌ 保存に失敗しました",
+      });
+    } finally {
+      setApiBusy(false);
+    }
   };
 
-  const saveApiSettings = () => {
-    saveSettings(settings);
-    flash(setApiSaved, apiSavedTimer);
-  };
-
-  const resetApiSettings = () => {
-    window.clearTimeout(testTimer.current);
-    const next = { ...settings, anthropicApiKey: "" };
-    setSettings(next);
-    saveSettings(next);
-    setApiTest({ status: "idle" });
+  const resetApiSettings = async () => {
+    if (
+      !window.confirm(
+        "保存された Anthropic API キーを削除しますか？\nAI質問は根拠提示のみ（未接続）になります。",
+      )
+    ) {
+      return;
+    }
+    setApiBusy(true);
+    try {
+      const response = await resetAiSettings();
+      setApiKeyDraft("");
+      setAiSettingsState({ kind: "loaded", status: response.data });
+      setApiTest({ status: "idle" });
+      flash(setApiSaved, apiSavedTimer);
+    } catch (error: unknown) {
+      setApiTest({
+        status: "error",
+        message:
+          error instanceof ApiError
+            ? `❌ ${error.message}`
+            : "❌ リセットに失敗しました",
+      });
+    } finally {
+      setApiBusy(false);
+    }
   };
 
   const apiTestClass =
@@ -193,9 +269,37 @@ export function SettingsPage() {
         <h2 className="m-0 text-[14px] font-semibold text-ink">🤖 AI設定(Anthropic)</h2>
         <p className="mt-1.5 mb-0 text-[12px] leading-relaxed text-faint">
           Anthropic API を利用して AI 質問機能の回答を生成します。API
-          キーはこの端末にのみ保存されます。
+          キーはサーバー側（管理者設定）に保存され、この端末には保持されません。環境変数
+          （LLM_API_KEY /
+          ANTHROPIC_API_KEY）が設定されている場合はそちらが優先されます。
         </p>
         <div className="mt-3.5 flex flex-col gap-3">
+          {aiSettingsState.kind === "loading" && (
+            <p role="status" className="m-0 text-[12.5px] text-faint">
+              ⏳ 設定を読み込んでいます…
+            </p>
+          )}
+          {aiSettingsState.kind === "error" && (
+            <p role="alert" className="m-0 text-[12.5px] text-danger">
+              ⚠️ {aiSettingsState.message}
+            </p>
+          )}
+          {aiSettingsState.kind === "loaded" && (
+            <p className="m-0 text-[12.5px] text-faint">
+              {configured ? (
+                <>
+                  ✅ 設定済み（
+                  {aiSettingsState.status.source === "env"
+                    ? "環境変数"
+                    : "サーバー設定"}
+                  ・キー末尾 {aiSettingsState.status.maskedKey}・モデル{" "}
+                  {aiSettingsState.status.model}）
+                </>
+              ) : (
+                <>未設定（AI質問は根拠提示のみになります）</>
+              )}
+            </p>
+          )}
           <div>
             <label htmlFor="api-key" className="text-[12.5px] font-semibold text-sub">
               Anthropic API キー
@@ -204,11 +308,12 @@ export function SettingsPage() {
               <input
                 id="api-key"
                 type="password"
-                placeholder="sk-ant-..."
-                value={settings.anthropicApiKey}
+                placeholder={
+                  configured ? "新しいキーを入力（現在設定済み）" : "sk-ant-..."
+                }
+                value={apiKeyDraft}
                 onChange={(event) => {
-                  window.clearTimeout(testTimer.current);
-                  setSettings({ ...settings, anthropicApiKey: event.target.value });
+                  setApiKeyDraft(event.target.value);
                   setApiTest({ status: "idle" });
                 }}
                 className="mt-1.5 w-full max-w-[420px] rounded-lg border border-line px-[11px] py-2 font-mono text-[13px]"
@@ -219,13 +324,15 @@ export function SettingsPage() {
             <button
               type="button"
               onClick={testConnection}
-              className="cursor-pointer rounded-lg border border-link-line bg-white px-3.5 py-2 font-sans text-[12.5px] font-semibold text-link"
+              disabled={apiBusy || (!apiKeyDraft.trim() && !configured)}
+              className="cursor-pointer rounded-lg border border-link-line bg-white px-3.5 py-2 font-sans text-[12.5px] font-semibold text-link disabled:cursor-not-allowed disabled:opacity-60"
             >
               🔌 接続テスト
             </button>
             <PrimaryButton
               type="button"
               onClick={saveApiSettings}
+              disabled={apiBusy || !apiKeyDraft.trim()}
               className="!px-3.5 !py-2 !text-[12.5px]"
             >
               💾 保存
@@ -233,7 +340,8 @@ export function SettingsPage() {
             <button
               type="button"
               onClick={resetApiSettings}
-              className="cursor-pointer rounded-lg border border-danger-line bg-white px-3.5 py-2 font-sans text-[12.5px] font-semibold text-danger"
+              disabled={apiBusy || !configured}
+              className="cursor-pointer rounded-lg border border-danger-line bg-white px-3.5 py-2 font-sans text-[12.5px] font-semibold text-danger disabled:cursor-not-allowed disabled:opacity-60"
             >
               ↺ リセット
             </button>
@@ -282,7 +390,7 @@ export function SettingsPage() {
               <Chip>
                 {infoState.info.llmProvider === "noop"
                   ? "未接続(根拠提示のみ)"
-                  : infoState.info.llmProvider}
+                  : "接続済み(Anthropic)"}
               </Chip>
             </dd>
             <dt className="text-faint">収録</dt>

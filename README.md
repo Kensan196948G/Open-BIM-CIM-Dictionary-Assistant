@@ -255,10 +255,13 @@ DATABASE_URL=
 LLM_PROVIDER=
 LLM_MODEL=
 LLM_API_KEY=
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-sonnet-4-6
 ```
 
 > `VITE_API_BASE_URL` は web ビルドが参照する API オリジンです（Vite は `VITE_` 接頭辞のみクライアントへ公開）。未設定なら同一オリジン相対パスになり、ローカル開発は Vite プロキシ（`/api` → `localhost:8787`）で動作します。
-
+>
+> AI 回答の Anthropic API キーはブラウザへ配布しません。`LLM_API_KEY` / `ANTHROPIC_API_KEY`（サーバー secret、優先）か、管理者設定画面（設定 → AI設定(Anthropic)）で保存したサーバー側の値を利用します。
 ### 4. DB（任意 — DB なしでも fixtures で動作）
 
 API は `DATABASE_URL` 未設定なら `fixtures/concepts.sample.json` ベースの in-memory repository で動作し、DB なしで起動できます。`DATABASE_URL` を設定すると **Neon/Drizzle 実装（`NeonDictionaryRepository`）へ自動で切り替わります**（#12 実装済み）。スキーマは `migrations/0001_init.sql`、サンプル投入は `DATABASE_URL=... pnpm --filter @obcda/api exec tsx scripts/seed.ts`（冪等）。
@@ -404,7 +407,7 @@ flowchart LR
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
 | 実装 | ✅ MVP（fixtures 辞書）+ Neon/Drizzle repository（#12） |
-| 検証 | ✅ 単体・統合 139 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
+| 検証 | ✅ 単体・統合 168 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
 | 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.3.0**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
@@ -413,8 +416,8 @@ flowchart LR
 | --- | --- | --- |
 | `packages/domain` | ✅ | ラベル正規化（NFC/NFKC・全半角・長音・中点・ハイフン吸収）、canonical key、IFC 版・和暦版パース。branch カバレッジ 90% 超 |
 | `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・比較・エラー・AI 回答） |
-| `packages/db` | ✅ | Drizzle スキーマ 16 テーブル + `migrations/0001_init.sql` / `0001_init.down.sql`（up→down→up round-trip 検証済み） |
-| `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(根拠提示・LLM未設定フォールバック)/出典/版一覧/ヘルス + CORS・セキュリティヘッダー |
+| `packages/db` | ✅ | Drizzle スキーマ 17 テーブル + `migrations/0001_init.sql` / `0002_ai_settings.sql`（up→down→up round-trip 検証済み） |
+| `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(Anthropic 根拠付き・未設定/障害時フォールバック)/出典/版一覧/管理系 AI設定(状態/保存/接続テスト/リセット)/ヘルス + CORS・セキュリティヘッダー |
 | `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索/詳細/比較/学習/AI質問/出典管理/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E 5 spec |
 | `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント（redirect 再検証・レート制御・バックオフ）+ **BsddRestAdapter**（bSDD Dictionary/Class/Property 取得・正規化）+ 実行記録ポート（ingestion_runs/items 相当）+ dry-run CLI (#13) |
 | `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
@@ -423,7 +426,7 @@ flowchart LR
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
 | 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |
 | 本番デプロイ | ✅ | Pages `obcda-web` production スロット — **`https://obcda.mirai-dx-platform.com`**（カスタムドメイン・**v0.3.0** / merge `042a81a` / 2026-07-24・デプロイ ID `6886433b`）。🔐 Cloudflare Access（セルフホスト型）で内部限定公開 — 未認証は 302。別名 `obcda-web.pages.dev` は `_worker.js`（advanced mode）で全パス 301 → カスタムドメインへ一本化（詳細は [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) §3.5-3.6） |
-| 取り込み・実 LLM | ⏳ | bSDD アダプター初版は完了 (#13)。DB への実記録・定義全文取得はスケールアップ後続、実 LLM は #14 |
+| 取り込み・実 LLM | ✅/⏳ | bSDD アダプター初版は完了 (#13)。DB への実記録・定義全文取得はスケールアップ後続。**実 LLM は完了**: Anthropic アダプター（#14 相当）— 管理者設定画面からキー保存/接続テスト/リセット（サーバー側 `app_settings`・env 優先）、AI質問は検索根拠のみで回答 |
 
 ## ⚠️ 免責
 

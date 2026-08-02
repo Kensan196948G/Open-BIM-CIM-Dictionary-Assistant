@@ -62,7 +62,11 @@ curl "https://obcda-api.<ACCOUNT_SUBDOMAIN>.workers.dev/api/v1/search?q=IfcAlign
 | --- | --- | --- |
 | `ALLOWED_ORIGIN` | Web からの CORS 許可 origin（Pages の URL） | vars |
 | `DATABASE_URL` | Neon 接続文字列（後続 #12） | **secret のみ**（`wrangler secret put DATABASE_URL`） |
-| `LLM_API_KEY` | AI 回答（後続 #14） | **secret のみ** |
+| `LLM_API_KEY` | AI 回答キー（env 優先） | **secret のみ** |
+| `ANTHROPIC_API_KEY` | AI 回答キー（env 優先・`LLM_API_KEY` と同義） | **secret のみ** |
+| `ANTHROPIC_MODEL` | Anthropic モデル ID（既定 `claude-sonnet-4-6`） | vars |
+
+> AI 回答キーは env secret 未設定の場合、管理者画面（設定 → AI設定(Anthropic)）で保存した値をサーバー側 `app_settings` テーブル（migration `0002_ai_settings.sql`）から利用する。保存/接続テスト/リセットは `/api/v1/admin/ai-settings` 系で行い、キーはレスポンスへ含めない。
 
 ### 3.2 Web — Cloudflare Pages
 
@@ -88,7 +92,7 @@ Neon プロジェクトは **2026-07-20 にユーザー承認のうえ作成済�
 | ブランチ | 用途 | 状態 |
 | --- | --- | --- |
 | `main` | 本番相当。**スキーマ適用は人間承認後のみ**（CLAUDE.md §8.6） | 空（未適用） |
-| `preview`（`br-sweet-recipe-a6p3fn78`） | 非本番検証用 | `0001_init.sql` 適用済み（16 テーブル・enum 17・pg_trgm/vector）+ fixtures seed 済み |
+| `preview`（`br-sweet-recipe-a6p3fn78`） | 非本番検証用 | `0001_init.sql` 適用済み（16 テーブル・enum 17・pg_trgm/vector）+ fixtures seed 済み。`0002_ai_settings.sql`（`app_settings`）は次回 preview 適用対象 |
 
 - seed は `apps/api/scripts/seed.ts`（`DATABASE_URL` 環境変数で対象を指定・冪等・単一トランザクション）
 - 本番（`main` ブランチ）への適用・`DATABASE_URL` secret 登録は人間が実行（値はチャット・ログへ出さない）
@@ -243,7 +247,7 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 - シークレットは Cloudflare Secrets のみ（リポジトリ・ログ・チャット出力禁止）
 - ローテーション: 四半期ごと、または漏えい疑い時に即時
 - 依存更新: Dependabot 相当の監視は CI audit で代替中（強化は Issue 化）
-- 管理系 API（/admin/*・後続）は Cloudflare Access 必須で公開経路と分離（設計 §9）
+- 管理系 API（`/api/v1/admin/*` — AI設定の保存/削除/接続テスト含む）は Cloudflare Access 必須で公開経路と分離（設計 §9）。本番は Web/API 全体が Access 保護済みのため同一アクセス制御で運用
 
 ---
 
@@ -251,5 +255,6 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
+| 2026-08-02 | 1.2 | Anthropic AI設定（#14 相当）実装: 管理者画面からキー保存/接続テスト/リセット、サーバー側 `app_settings` 保存（migration 0002）・env 優先、AI質問の根拠付き回答 |
 | 2026-07-18 | 1.0 | 初版（MVP fixtures 構成のデプロイ・ロールバック・運用・障害対応） |
 | 2026-07-20 | 1.1 | #12 反映: Neon プロジェクト/preview ブランチ作成・migration/seed 実施、非本番 preview（Pages フルスタック）デプロイ記録、`VITE_API_BASE_URL` 名称統一 |

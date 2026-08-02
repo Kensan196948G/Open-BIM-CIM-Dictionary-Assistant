@@ -5,6 +5,7 @@ import { InMemoryDictionaryRepository } from "./repositories/inMemory";
 import { NeonDictionaryRepository } from "./repositories/neon";
 import type { DictionaryRepository } from "./repositories/types";
 import { UnavailableDictionaryRepository } from "./repositories/unavailable";
+import { NeonAiSettingsStore, type AiSettingsStore } from "./services/aiSettings";
 
 const fixtureRepository = new InMemoryDictionaryRepository(dictionaryFixture);
 const unavailableRepository = new UnavailableDictionaryRepository();
@@ -14,6 +15,8 @@ const unavailableRepository = new UnavailableDictionaryRepository();
 // rotated DATABASE_URL secret is picked up on the next isolate reload.
 let cachedDatabaseUrl: string | undefined;
 let cachedRepository: NeonDictionaryRepository | undefined;
+let cachedSettingsUrl: string | undefined;
+let cachedSettingsStore: NeonAiSettingsStore | undefined;
 
 function resolveRepository(
   env: AppEnv["Bindings"] | undefined,
@@ -35,8 +38,24 @@ function resolveRepository(
   return cachedRepository;
 }
 
+function resolveAiSettingsStore(
+  env: AppEnv["Bindings"] | undefined,
+): AiSettingsStore | undefined {
+  const databaseUrl = env?.DATABASE_URL;
+  if (!databaseUrl) return undefined;
+  if (databaseUrl !== cachedSettingsUrl) {
+    const store = new NeonAiSettingsStore(databaseUrl);
+    cachedSettingsStore = store;
+    cachedSettingsUrl = databaseUrl;
+  }
+  return cachedSettingsStore;
+}
+
 /** Default app: Neon-backed when DATABASE_URL is bound (Workers), fixtures otherwise (Node dev). */
-export const app = createApp(fixtureRepository, { resolveRepository });
+export const app = createApp(fixtureRepository, {
+  resolveRepository,
+  resolveAiSettingsStore,
+});
 
 export { createApp } from "./app";
 export { InMemoryDictionaryRepository } from "./repositories/inMemory";

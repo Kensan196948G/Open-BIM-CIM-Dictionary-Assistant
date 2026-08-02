@@ -126,8 +126,8 @@ export function AiPage() {
 
       {refused && (
         <div className="rounded-[10px] border border-warn-line bg-warn-soft px-[18px] py-4 text-[13px] text-warn-deep">
-          根拠となる情報が見つかりませんでした。質問を具体的な用語名（例:
-          IfcAlignment、属性情報）にして再度お試しください。
+          {answered.answer.answer ||
+            "根拠となる情報が見つかりませんでした。質問を具体的な用語名（例: IfcAlignment、属性情報）にして再度お試しください。"}
         </div>
       )}
 
@@ -147,7 +147,7 @@ export function AiPage() {
         </Card>
       )}
 
-      {answered && !refused && evidence.length > 0 && (
+      {answered && evidence.length > 0 && (
         <div className="flex flex-col gap-2.5">
           <div className="text-[12.5px] text-faint">🔗 根拠として見つかった情報:</div>
           {evidence.map((item) => (
