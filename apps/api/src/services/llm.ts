@@ -17,6 +17,7 @@ const ANTHROPIC_API_BASE = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
 /** Current default (configurable via ANTHROPIC_MODEL env). */
 export const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const ANTHROPIC_REQUEST_TIMEOUT_MS = 30_000;
 
 export type GroundedEvidence = {
   /** concept id acting as the evidence id in MVP (evidence_chunks come with Neon). */
@@ -71,9 +72,19 @@ export class NoopLlmProvider implements LlmProvider {
 export type AnthropicLlmOptions = {
   apiKey: string;
   model?: string;
+  /** Per-request timeout (default 30s); testable via small values. */
+  timeoutMs?: number;
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: typeof fetch;
 };
+
+function requestSignal(
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+): AbortSignal {
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+}
 
 function systemPrompt(
   explanationLevel: GroundedAnswerInput["explanationLevel"],
@@ -99,10 +110,12 @@ function systemPrompt(
 export async function testAnthropicConnection(options: {
   apiKey: string;
   model?: string;
+  timeoutMs?: number;
   fetchImpl?: typeof fetch;
   signal?: AbortSignal;
 }): Promise<{ latencyMs: number }> {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const timeoutMs = options.timeoutMs ?? ANTHROPIC_REQUEST_TIMEOUT_MS;
   const startedAt = Date.now();
   const response = await fetchImpl(ANTHROPIC_API_BASE, {
     method: "POST",
@@ -116,7 +129,7 @@ export async function testAnthropicConnection(options: {
       max_tokens: 1,
       messages: [{ role: "user", content: "ping" }],
     }),
-    signal: options.signal,
+    signal: requestSignal(options.signal, timeoutMs),
   });
   if (!response.ok) {
     throw new Error(`Anthropic API responded with ${response.status}`);
@@ -169,11 +182,13 @@ export class AnthropicLlmProvider implements LlmProvider {
   readonly id = "anthropic";
   private readonly apiKey: string;
   private readonly model: string;
+  private readonly timeoutMs: number;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: AnthropicLlmOptions) {
     this.apiKey = options.apiKey;
     this.model = options.model ?? DEFAULT_ANTHROPIC_MODEL;
+    this.timeoutMs = options.timeoutMs ?? ANTHROPIC_REQUEST_TIMEOUT_MS;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -196,7 +211,7 @@ export class AnthropicLlmProvider implements LlmProvider {
         },
         body: JSON.stringify({
           model: this.model,
-          max_tokens: 1024,
+          max_tokens: 4096,
           system: systemPrompt(input.explanationLevel),
           messages: [
             {
@@ -208,7 +223,7 @@ export class AnthropicLlmProvider implements LlmProvider {
             },
           ],
         }),
-        signal,
+        signal: requestSignal(signal, this.timeoutMs),
       });
     } catch {
       return fallbackAnswer(

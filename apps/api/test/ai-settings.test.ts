@@ -13,6 +13,7 @@ import { createApp } from "../src/app";
 import { dictionaryFixture } from "../src/fixtures";
 import { InMemoryDictionaryRepository } from "../src/repositories/inMemory";
 import { InMemoryAiSettingsStore } from "../src/services/aiSettings";
+import { AnthropicLlmProvider } from "../src/services/llm";
 
 const IFC_ALIGNMENT_ID = "018f0000-0000-7000-8000-000000000001";
 const UNKNOWN_ID = "018f0000-0000-7000-8000-0000000000ff";
@@ -83,6 +84,23 @@ describe("GET /api/v1/admin/ai-settings", () => {
       maskedKey: "…1234",
     });
   });
+
+  it("treats an empty env binding as unset and falls back to the stored key", async () => {
+    const { app, store } = makeApp();
+    await store.setKey(VALID_KEY);
+    const res = await app.request(
+      "/api/v1/admin/ai-settings",
+      {},
+      { ANTHROPIC_API_KEY: "" },
+    );
+    expect(res.status).toBe(200);
+    const body = AiSettingsStatusResponseSchema.parse(await res.json());
+    expect(body.data).toMatchObject({
+      configured: true,
+      source: "stored",
+      maskedKey: "…ijkl",
+    });
+  });
 });
 
 describe("POST /api/v1/admin/ai-settings", () => {
@@ -105,7 +123,8 @@ describe("POST /api/v1/admin/ai-settings", () => {
     const again = await app.request("/api/v1/admin/ai-settings");
     const againBody = AiSettingsStatusResponseSchema.parse(await again.json());
     expect(againBody.data.configured).toBe(true);
-    expect(JSON.stringify(againBody)).not.toContain(VALID_KEY.slice(10));
+    expect(JSON.stringify(againBody)).not.toContain(VALID_KEY);
+    expect(JSON.stringify(againBody)).not.toContain(VALID_KEY.slice(0, -4));
   });
 
   it("rejects non-Anthropic key formats and too-short keys", async () => {
@@ -298,6 +317,37 @@ describe("POST /api/v1/assistant/answers with Anthropic key", () => {
       data: { answer: { insufficientEvidence: boolean } };
     };
     expect(body.data.answer.insufficientEvidence).toBe(true);
+  });
+});
+
+describe("AnthropicLlmProvider request timeout", () => {
+  it("degrades to a grounding-only answer when the request times out", async () => {
+    const provider = new AnthropicLlmProvider({
+      apiKey: VALID_KEY,
+      timeoutMs: 50,
+      fetchImpl: ((_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        })) as typeof fetch,
+    });
+
+    const answer = await provider.answer({
+      question: "IfcAlignment とは何ですか",
+      explanationLevel: "beginner",
+      evidence: [
+        {
+          id: IFC_ALIGNMENT_ID,
+          canonicalKey: "ifc4x3:entity:IfcAlignment",
+          name: "IfcAlignment",
+          version: "IFC4.3.2.0",
+          summaryJa: "線形構造物の基準線形を表す概念です。",
+        },
+      ],
+    });
+    expect(answer.insufficientEvidence).toBe(true);
+    expect(answer.answer).toContain("生成できませんでした");
   });
 });
 

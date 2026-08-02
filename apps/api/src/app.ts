@@ -116,7 +116,7 @@ async function resolveLlmProvider(
     // Keep AI answers degrading to grounding-only instead of failing
     // unrelated routes (e.g. health) when the settings store is down.
   }
-  const apiKey = env?.ANTHROPIC_API_KEY ?? env?.LLM_API_KEY ?? storedKey;
+  const apiKey = env?.ANTHROPIC_API_KEY || env?.LLM_API_KEY || storedKey;
   if (!apiKey) return new NoopLlmProvider();
   return new AnthropicLlmProvider({
     apiKey,

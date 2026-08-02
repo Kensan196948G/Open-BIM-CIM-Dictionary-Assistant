@@ -23,16 +23,23 @@ export function loadSettings(): AppSettings {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    const parsed = JSON.parse(raw) as Partial<AppSettings> & {
+      anthropicApiKey?: unknown;
+    };
     const level = parsed.explanationLevel === "technical" ? "technical" : "beginner";
     const limit = Number(parsed.searchLimit);
-    return {
+    const sanitized: AppSettings = {
       explanationLevel: level,
       searchLimit:
         Number.isInteger(limit) && limit >= 1 && limit <= 100
           ? limit
           : DEFAULT_SETTINGS.searchLimit,
     };
+    // 旧バージョンで localStorage に残った API キーを読み込み時に即座に除去する
+    if ("anthropicApiKey" in parsed) {
+      saveSettings(sanitized);
+    }
+    return sanitized;
   } catch {
     return DEFAULT_SETTINGS;
   }

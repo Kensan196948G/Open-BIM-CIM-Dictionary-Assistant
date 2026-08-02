@@ -22,7 +22,8 @@ export function createAdminRoutes() {
 
   async function statusResponse(c: Context<AppEnv>) {
     const store = c.get("aiSettingsStore");
-    const envKey = c.env?.ANTHROPIC_API_KEY ?? c.env?.LLM_API_KEY;
+    // 空文字の env バインディングは未設定として扱う
+    const envKey = c.env?.ANTHROPIC_API_KEY || c.env?.LLM_API_KEY || undefined;
     const storedKey = envKey ? null : await store.getKey();
     const activeKey = envKey ?? storedKey;
     const source = envKey ? "env" : storedKey ? "stored" : "none";
@@ -79,7 +80,9 @@ export function createAdminRoutes() {
     try {
       payload = await c.req.json();
     } catch {
-      payload = {};
+      return errorResponse(c, "VALIDATION_ERROR", "入力内容を確認してください。", [
+        { field: "(body)", reason: "invalid_json" },
+      ]);
     }
     const parsed = TestAiSettingsSchema.safeParse(payload);
     if (!parsed.success) {
@@ -88,7 +91,7 @@ export function createAdminRoutes() {
       ]);
     }
 
-    const envKey = c.env?.ANTHROPIC_API_KEY ?? c.env?.LLM_API_KEY;
+    const envKey = c.env?.ANTHROPIC_API_KEY || c.env?.LLM_API_KEY || undefined;
     const apiKey =
       parsed.data.apiKey ?? envKey ?? (await c.get("aiSettingsStore").getKey());
     if (!apiKey) {
