@@ -32,5 +32,7 @@ export type AppEnv = {
     CF_ACCESS_TEAM_DOMAIN?: string;
     /** Cloudflare Access application audience (AUD) tag. */
     CF_ACCESS_AUD?: string;
+    /** Base64 32-byte KEK: encrypts app_settings values at rest (wrangler secret). */
+    SETTINGS_ENC_KEY?: string;
   };
 };
