@@ -34,5 +34,7 @@ export type AppEnv = {
     CF_ACCESS_AUD?: string;
     /** Base64 32-byte KEK: encrypts app_settings values at rest (wrangler secret). */
     SETTINGS_ENC_KEY?: string;
+    /** Daily AI token cap (input+output, UTC day); unset/invalid = no cap. */
+    AI_DAILY_TOKEN_BUDGET?: string;
   };
 };

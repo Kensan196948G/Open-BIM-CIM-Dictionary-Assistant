@@ -333,7 +333,7 @@ describe("AnthropicLlmProvider request timeout", () => {
         })) as typeof fetch,
     });
 
-    const answer = await provider.answer({
+    const result = await provider.answer({
       question: "IfcAlignment とは何ですか",
       explanationLevel: "beginner",
       evidence: [
@@ -346,8 +346,9 @@ describe("AnthropicLlmProvider request timeout", () => {
         },
       ],
     });
-    expect(answer.insufficientEvidence).toBe(true);
-    expect(answer.answer).toContain("生成できませんでした");
+    expect(result.usage).toBeNull();
+    expect(result.answer.insufficientEvidence).toBe(true);
+    expect(result.answer.answer).toContain("生成できませんでした");
   });
 });
 

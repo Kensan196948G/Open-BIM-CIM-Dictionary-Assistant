@@ -8,6 +8,12 @@ import { Hono } from "hono";
 
 import type { AppEnv } from "../middleware/context";
 import { errorResponse, zodDetails } from "../middleware/errors";
+import {
+  parseDailyTokenBudget,
+  type AiUsageRecorder,
+  type DailyTokenBudget,
+} from "../services/aiUsage";
+import { groundingOnlyAnswer } from "../services/llm";
 
 export type AssistantAnswerResponse = {
   data: {
@@ -23,8 +29,16 @@ export type AssistantAnswerResponse = {
  * search, then delegate to the LLM provider. Claims citing unknown evidence
  * ids are rejected server-side (§6.3) — the answer degrades to
  * insufficientEvidence instead of shipping unverifiable statements.
+ *
+ * Cost control (AI-4 MVP): when AI_DAILY_TOKEN_BUDGET is bound and today's
+ * recorded usage reaches it, the endpoint keeps serving grounding-only
+ * answers (§11.3 degradation) instead of spending further tokens. Every
+ * answer records a usage event (tokens/latency only — no question text).
  */
-export function createAssistantRoutes() {
+export function createAssistantRoutes(
+  usageRecorder: AiUsageRecorder,
+  tokenBudget: DailyTokenBudget,
+) {
   const routes = new Hono<AppEnv>();
 
   routes.post("/answers", async (c) => {
@@ -55,25 +69,44 @@ export function createAssistantRoutes() {
     });
     const outcome = await c.get("repository").search(query);
 
+    const providerInput = {
+      question: parsed.data.question,
+      explanationLevel: parsed.data.explanationLevel,
+      evidence: outcome.items.map((item) => ({
+        id: item.id,
+        canonicalKey: item.canonicalKey,
+        name: item.name,
+        version: item.version,
+        summaryJa: item.summaryJa,
+      })),
+    };
+
+    const provider = c.get("llmProvider");
+    const budgetLimit = parseDailyTokenBudget(c.env?.AI_DAILY_TOKEN_BUDGET);
+    const startedAt = Date.now();
     let answer: AssistantAnswer;
-    try {
-      answer = await c.get("llmProvider").answer({
-        question: parsed.data.question,
-        explanationLevel: parsed.data.explanationLevel,
-        evidence: outcome.items.map((item) => ({
-          id: item.id,
-          canonicalKey: item.canonicalKey,
-          name: item.name,
-          version: item.version,
-          summaryJa: item.summaryJa,
-        })),
-      });
-    } catch {
-      return errorResponse(
-        c,
-        "AI_UNAVAILABLE",
-        "AI 回答を生成できませんでした。検索機能は利用できます。",
+    let usedTokens = { inputTokens: 0, outputTokens: 0 };
+    if (tokenBudget.exhausted(budgetLimit)) {
+      // §11.3 degradation, not an error: search + grounding stay available.
+      answer = groundingOnlyAnswer(
+        providerInput,
+        "本日の AI 利用上限に達したため、AI 要約は明日まで停止しています。下記の根拠候補と原典をご確認ください。",
       );
+    } else {
+      try {
+        const result = await provider.answer(providerInput);
+        answer = result.answer;
+        if (result.usage) {
+          usedTokens = result.usage;
+          tokenBudget.add(result.usage.inputTokens + result.usage.outputTokens);
+        }
+      } catch {
+        return errorResponse(
+          c,
+          "AI_UNAVAILABLE",
+          "AI 回答を生成できませんでした。検索機能は利用できます。",
+        );
+      }
     }
 
     // §6.3 guardrail: every cited evidence id must come from the grounding set.
@@ -96,6 +129,17 @@ export function createAssistantRoutes() {
         ],
       };
     }
+
+    usageRecorder.record({
+      occurredAt: new Date().toISOString(),
+      requestId: c.get("requestId"),
+      provider: provider.id,
+      model: c.env?.ANTHROPIC_MODEL ?? null,
+      inputTokens: usedTokens.inputTokens,
+      outputTokens: usedTokens.outputTokens,
+      latencyMs: Date.now() - startedAt,
+      insufficientEvidence: answer.insufficientEvidence,
+    });
 
     const body: AssistantAnswerResponse = {
       data: { answer, evidence: outcome.items },

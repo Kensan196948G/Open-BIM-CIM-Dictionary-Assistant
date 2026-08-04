@@ -19,6 +19,11 @@ import { sourceRoutes } from "./routes/sources";
 import { createSystemRoutes } from "./routes/system";
 import { InMemoryAuditLog, type AuditLog } from "./services/auditLog";
 import {
+  DailyTokenBudget,
+  InMemoryAiUsageRecorder,
+  type AiUsageRecorder,
+} from "./services/aiUsage";
+import {
   AnthropicLlmProvider,
   NoopLlmProvider,
   type LlmProvider,
@@ -40,6 +45,10 @@ export type AppOptions = {
     env: AppEnv["Bindings"] | undefined,
   ) => AiSettingsStore | undefined;
   auditLog?: AuditLog;
+  /** AI usage metrics recorder override (tests); default in-memory. */
+  aiUsageRecorder?: AiUsageRecorder;
+  /** Daily token budget override (tests inject a fixed clock). */
+  tokenBudget?: DailyTokenBudget;
   /** Per-request repository override (e.g. Neon when DATABASE_URL is bound); falls back to `repository`. */
   resolveRepository?: (
     env: AppEnv["Bindings"] | undefined,
@@ -50,6 +59,8 @@ export type AppOptions = {
 export function createApp(repository: DictionaryRepository, options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
   const auditLog = options.auditLog ?? new InMemoryAuditLog();
+  const aiUsageRecorder = options.aiUsageRecorder ?? new InMemoryAiUsageRecorder();
+  const tokenBudget = options.tokenBudget ?? new DailyTokenBudget();
 
   app.use("*", requestId());
   app.use("*", securityHeaders());
@@ -96,8 +107,8 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);
   app.route("/api/v1/compare", compareRoutes);
-  app.route("/api/v1/assistant", createAssistantRoutes());
-  app.route("/api/v1/admin", createAdminRoutes());
+  app.route("/api/v1/assistant", createAssistantRoutes(aiUsageRecorder, tokenBudget));
+  app.route("/api/v1/admin", createAdminRoutes(aiUsageRecorder, tokenBudget));
   app.route("/api/v1/sources", sourceRoutes);
   app.route("/api/v1/system", createSystemRoutes(auditLog));
   app.route("/api/v1/health", healthRoutes);

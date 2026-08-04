@@ -34,9 +34,20 @@ export type GroundedAnswerInput = {
   evidence: GroundedEvidence[];
 };
 
+export type LlmTokenUsage = {
+  inputTokens: number;
+  outputTokens: number;
+};
+
+export type LlmAnswerResult = {
+  answer: AssistantAnswer;
+  /** Provider-reported token usage; null when no billable call was made. */
+  usage: LlmTokenUsage | null;
+};
+
 export interface LlmProvider {
   readonly id: string;
-  answer(input: GroundedAnswerInput, signal?: AbortSignal): Promise<AssistantAnswer>;
+  answer(input: GroundedAnswerInput, signal?: AbortSignal): Promise<LlmAnswerResult>;
 }
 
 const STANDARD_CAVEATS = [
@@ -45,7 +56,10 @@ const STANDARD_CAVEATS = [
 ];
 
 /** §11.3 grounding-only fallback — never fabricates claims. */
-function fallbackAnswer(input: GroundedAnswerInput, message?: string): AssistantAnswer {
+export function groundingOnlyAnswer(
+  input: GroundedAnswerInput,
+  message?: string,
+): AssistantAnswer {
   const hasEvidence = input.evidence.length > 0;
   return {
     answer:
@@ -64,8 +78,8 @@ function fallbackAnswer(input: GroundedAnswerInput, message?: string): Assistant
 export class NoopLlmProvider implements LlmProvider {
   readonly id = "noop";
 
-  async answer(input: GroundedAnswerInput): Promise<AssistantAnswer> {
-    return fallbackAnswer(input);
+  async answer(input: GroundedAnswerInput): Promise<LlmAnswerResult> {
+    return { answer: groundingOnlyAnswer(input), usage: null };
   }
 }
 
@@ -154,6 +168,16 @@ function extractText(payload: unknown): string | null {
   return null;
 }
 
+function extractUsage(payload: unknown): LlmTokenUsage | null {
+  if (!payload || typeof payload !== "object") return null;
+  const usage = (payload as { usage?: unknown }).usage;
+  if (!usage || typeof usage !== "object") return null;
+  const input = (usage as { input_tokens?: unknown }).input_tokens;
+  const output = (usage as { output_tokens?: unknown }).output_tokens;
+  if (typeof input !== "number" || typeof output !== "number") return null;
+  return { inputTokens: input, outputTokens: output };
+}
+
 function parseAnswerJson(
   text: string,
   explanationLevel: GroundedAnswerInput["explanationLevel"],
@@ -195,9 +219,9 @@ export class AnthropicLlmProvider implements LlmProvider {
   async answer(
     input: GroundedAnswerInput,
     signal?: AbortSignal,
-  ): Promise<AssistantAnswer> {
+  ): Promise<LlmAnswerResult> {
     if (input.evidence.length === 0) {
-      return fallbackAnswer(input);
+      return { answer: groundingOnlyAnswer(input), usage: null };
     }
 
     let response: Response;
@@ -226,33 +250,46 @@ export class AnthropicLlmProvider implements LlmProvider {
         signal: requestSignal(signal, this.timeoutMs),
       });
     } catch {
-      return fallbackAnswer(
-        input,
-        "AI 回答を生成できませんでした。下記の根拠候補と原典をご確認ください。",
-      );
+      return {
+        answer: groundingOnlyAnswer(
+          input,
+          "AI 回答を生成できませんでした。下記の根拠候補と原典をご確認ください。",
+        ),
+        usage: null,
+      };
     }
 
     if (!response.ok) {
-      return fallbackAnswer(
-        input,
-        "AI 回答を生成できませんでした。下記の根拠候補と原典をご確認ください。",
-      );
+      return {
+        answer: groundingOnlyAnswer(
+          input,
+          "AI 回答を生成できませんでした。下記の根拠候補と原典をご確認ください。",
+        ),
+        usage: null,
+      };
     }
 
     const payload = await response.json().catch(() => null);
+    const usage = extractUsage(payload);
     const text = extractText(payload);
     const parsed = text ? parseAnswerJson(text, input.explanationLevel) : null;
     if (!parsed) {
-      return fallbackAnswer(
-        input,
-        "AI 回答の形式が不正なため保留しました。下記の根拠候補と原典をご確認ください。",
-      );
+      return {
+        answer: groundingOnlyAnswer(
+          input,
+          "AI 回答の形式が不正なため保留しました。下記の根拠候補と原典をご確認ください。",
+        ),
+        usage,
+      };
     }
 
     return {
-      ...parsed,
-      explanationLevel: input.explanationLevel,
-      caveats: [...STANDARD_CAVEATS, ...parsed.caveats],
+      answer: {
+        ...parsed,
+        explanationLevel: input.explanationLevel,
+        caveats: [...STANDARD_CAVEATS, ...parsed.caveats],
+      },
+      usage,
     };
   }
 }

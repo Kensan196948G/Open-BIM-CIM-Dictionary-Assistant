@@ -49,3 +49,46 @@ export const TestAiSettingsResponseSchema = z.object({
   meta: ResponseMetaSchema,
 });
 export type TestAiSettingsResponse = z.infer<typeof TestAiSettingsResponseSchema>;
+
+/**
+ * GET /api/v1/admin/ai-usage — AI 運用メトリクス（FR-208 の MVP）.
+ * Privacy: events carry token counts and timing only — no question text,
+ * no answer text, no IP (§12.1).
+ */
+export const AiUsageEventSchema = z.object({
+  occurredAt: z.iso.datetime(),
+  requestId: z.string(),
+  provider: z.string(),
+  model: z.string().nullable(),
+  inputTokens: z.number().int().nonnegative(),
+  outputTokens: z.number().int().nonnegative(),
+  latencyMs: z.number().nonnegative(),
+  insufficientEvidence: z.boolean(),
+});
+export type AiUsageEvent = z.infer<typeof AiUsageEventSchema>;
+
+export const AiUsageSummarySchema = z.object({
+  totalRequests: z.number().int().nonnegative(),
+  totalInputTokens: z.number().int().nonnegative(),
+  totalOutputTokens: z.number().int().nonnegative(),
+  averageLatencyMs: z.number().nonnegative(),
+  insufficientEvidenceCount: z.number().int().nonnegative(),
+  /** When this in-memory window started (isolate lifetime). */
+  windowStartedAt: z.iso.datetime(),
+});
+export type AiUsageSummary = z.infer<typeof AiUsageSummarySchema>;
+
+export const AiUsageResponseSchema = z.object({
+  data: z.object({
+    summary: AiUsageSummarySchema,
+    budget: z.object({
+      /** Daily token cap (input+output); null = no cap configured. */
+      dailyTokenBudget: z.number().int().positive().nullable(),
+      usedToday: z.number().int().nonnegative(),
+      exhausted: z.boolean(),
+    }),
+    recent: z.array(AiUsageEventSchema),
+  }),
+  meta: ResponseMetaSchema,
+});
+export type AiUsageResponse = z.infer<typeof AiUsageResponseSchema>;
