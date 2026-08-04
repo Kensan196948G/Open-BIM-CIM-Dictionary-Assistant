@@ -69,6 +69,10 @@ export type AppOptions = {
 export function createApp(repository: DictionaryRepository, options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
   const auditLog = options.auditLog ?? new InMemoryAuditLog();
+  // One store per app instance (not per request): in fixtures mode without an
+  // injected/Neon store, a saved key must survive to the next request instead
+  // of being written to a throwaway store and lost immediately.
+  const fallbackAiSettingsStore = new InMemoryAiSettingsStore();
   const aiUsageRecorder = options.aiUsageRecorder ?? new InMemoryAiUsageRecorder();
   const tokenBudget = options.tokenBudget ?? new DailyTokenBudget();
   const defaultAuditChanges =
@@ -94,7 +98,7 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
     const aiSettingsStore =
       options.resolveAiSettingsStore?.(c.env) ??
       options.aiSettingsStore ??
-      new InMemoryAiSettingsStore();
+      fallbackAiSettingsStore;
     c.set("aiSettingsStore", aiSettingsStore);
     c.set(
       "auditChanges",

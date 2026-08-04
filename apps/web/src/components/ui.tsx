@@ -81,7 +81,7 @@ export function TextInput({
   return (
     <input
       {...props}
-      className={`rounded-lg border border-line px-[13px] py-[10px] font-sans text-[14px] outline-none ${className}`}
+      className={`rounded-lg border border-line px-[13px] py-[10px] font-sans text-[14px] outline-none focus-visible:border-link focus-visible:ring-2 focus-visible:ring-link/40 ${className}`}
     />
   );
 }
