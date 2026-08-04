@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes } from "react-router";
 
 import { fetchSystemInfo } from "./lib/api";
 import { CompareProvider } from "./lib/compare";
