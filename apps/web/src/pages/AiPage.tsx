@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import type { SearchResultItem } from "@obcda/contracts";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { Card, PrimaryButton, TextInput } from "../components/ui";
 import { askAssistant, type AssistantAnswerResponse } from "../lib/api";

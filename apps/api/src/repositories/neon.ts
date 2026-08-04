@@ -61,6 +61,7 @@ const CURRENT_VERSION_CTE = sql`
 `;
 
 export class NeonDictionaryRepository implements DictionaryRepository {
+  readonly environment = "database" as const;
   private readonly db: ReturnType<typeof drizzle>;
 
   constructor(connectionString: string) {

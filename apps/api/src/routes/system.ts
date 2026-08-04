@@ -16,12 +16,13 @@ export function createSystemRoutes(auditLog: AuditLog) {
   const routes = new Hono<AppEnv>();
 
   routes.get("/info", async (c) => {
-    const stats = await c.get("repository").getStats();
+    const repository = c.get("repository");
+    const stats = await repository.getStats();
     const body: SystemInfoResponse = {
       data: {
         name: "Open BIM/CIM Dictionary Assistant",
         version: packageJson.version,
-        environment: "fixtures",
+        environment: repository.environment,
         llmProvider: c.get("llmProvider").id,
         startedAt: STARTED_AT,
         counts: {

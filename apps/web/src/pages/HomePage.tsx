@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { Card, PrimaryButton, TextInput } from "../components/ui";
 import { fetchSystemInfo } from "../lib/api";

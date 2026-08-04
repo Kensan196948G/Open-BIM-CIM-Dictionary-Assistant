@@ -15,6 +15,9 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import app from "../src/index";
+import { createApp } from "../src/app";
+import { dictionaryFixture } from "../src/fixtures";
+import { InMemoryDictionaryRepository } from "../src/repositories/inMemory";
 
 const IFC_ALIGNMENT_ID = "018f0000-0000-7000-8000-000000000001";
 const UNKNOWN_ID = "018f0000-0000-7000-8000-0000000000ff";
@@ -340,6 +343,24 @@ describe("GET /api/v1/system/info", () => {
       parsed.data.counts.concepts,
     );
     expect(parsed.data.counts.sources).toBe(3);
+  });
+
+  it("reports environment=database when a database-backed repository serves it", async () => {
+    const dbApp = createApp(new InMemoryDictionaryRepository(dictionaryFixture), {
+      resolveRepository: () => ({
+        environment: "database" as const,
+        search: async () => ({ items: [], nextCursor: null }),
+        getConceptById: async () => null,
+        getRelations: async () => null,
+        listSources: async () => [],
+        getSourceVersions: async () => null,
+        getStats: async () => ({ concepts: 1, publishedConcepts: 1, sources: 1 }),
+        isReady: async () => true,
+      }),
+    });
+    const res = await dbApp.request("/api/v1/system/info");
+    const parsed = SystemInfoResponseSchema.parse(await res.json());
+    expect(parsed.data.environment).toBe("database");
   });
 });
 

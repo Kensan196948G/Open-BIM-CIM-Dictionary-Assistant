@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { ConceptDetail, SearchResultItem } from "@obcda/contracts";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { Chip, EmptyCard, LoadingCard, TextInput } from "../components/ui";
 import { compareConcepts, fetchConcept, searchConcepts } from "../lib/api";

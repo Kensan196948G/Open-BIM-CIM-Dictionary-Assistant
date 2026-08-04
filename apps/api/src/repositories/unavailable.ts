@@ -22,6 +22,9 @@ const unavailable = (): never => {
 };
 
 export class UnavailableDictionaryRepository implements DictionaryRepository {
+  // Represents the intended database mode that is currently misconfigured.
+  readonly environment = "database" as const;
+
   async search(): Promise<SearchOutcome> {
     return unavailable();
   }

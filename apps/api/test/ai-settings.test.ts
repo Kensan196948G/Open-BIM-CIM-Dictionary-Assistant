@@ -127,6 +127,23 @@ describe("POST /api/v1/admin/ai-settings", () => {
     expect(JSON.stringify(againBody)).not.toContain(VALID_KEY.slice(0, -4));
   });
 
+  it("persists across requests with the app's default store (fixtures mode)", async () => {
+    // No store injected — exercises the real fixtures-mode production path
+    // where createApp owns a single fallback store. Regression: a per-request
+    // store discarded the key immediately after POST.
+    const app = createApp(new InMemoryDictionaryRepository(dictionaryFixture));
+    const saved = await app.request("/api/v1/admin/ai-settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey: VALID_KEY }),
+    });
+    expect(saved.status).toBe(200);
+
+    const status = await app.request("/api/v1/admin/ai-settings");
+    const body = AiSettingsStatusResponseSchema.parse(await status.json());
+    expect(body.data).toMatchObject({ configured: true, source: "stored" });
+  });
+
   it("rejects non-Anthropic key formats and too-short keys", async () => {
     const { app } = makeApp();
     for (const apiKey of ["wrong-format-key", "short"]) {
