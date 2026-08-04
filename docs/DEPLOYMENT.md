@@ -65,8 +65,15 @@ curl "https://obcda-api.<ACCOUNT_SUBDOMAIN>.workers.dev/api/v1/search?q=IfcAlign
 | `LLM_API_KEY` | AI 回答キー（env 優先） | **secret のみ** |
 | `ANTHROPIC_API_KEY` | AI 回答キー（env 優先・`LLM_API_KEY` と同義） | **secret のみ** |
 | `ANTHROPIC_MODEL` | Anthropic モデル ID（既定 `claude-sonnet-4-6`） | vars |
+| `CF_ACCESS_TEAM_DOMAIN` | §9.1 admin JWT 検証: Access チームドメイン（例 `myteam.cloudflareaccess.com`） | vars |
+| `CF_ACCESS_AUD` | §9.1 admin JWT 検証: Access アプリの AUD タグ（両方設定で有効化） | vars |
+| `SETTINGS_ENC_KEY` | `app_settings` 暗号化 KEK（base64 32byte・`openssl rand -base64 32`） | **secret のみ** |
+| `AI_DAILY_TOKEN_BUDGET` | AI 日次トークン上限（到達時は根拠のみ回答へ縮退・未設定 = 上限なし） | vars |
+| `ADMIN_EXTRA_HOSTS` | admin ホストガードの追加許可ホスト（カンマ区切り） | vars |
 
 > AI 回答キーは env secret 未設定の場合、管理者画面（設定 → AI設定(Anthropic)）で保存した値をサーバー側 `app_settings` テーブル（migration `0002_ai_settings.sql`）から利用する。保存/接続テスト/リセットは `/api/v1/admin/ai-settings` 系で行い、キーはレスポンスへ含めない。
+>
+> 🔐 **多層防御（2026-08-04 追加）**: ① `SETTINGS_ENC_KEY` を設定すると保存キーは AES-256-GCM（`enc:v1` 形式）で暗号化保存される（既存平文行は読み取り互換・次回保存で暗号化。KEK ローテ後の旧値は未設定扱い → 再保存）。② `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` を設定すると `/api/v1/admin/*` はアプリ層でも Access JWT を検証（401）。③ pages-worker はデプロイ毎 `<hash>.pages.dev` ホストからの admin 経路を 404 で拒否。④ §9.2 レート制限（search 60/min・compare 30/min・AI 10/10min・admin 20/min、in-memory・IP 非記録）。⑤ AI 利用は `GET /api/v1/admin/ai-usage` で集計確認（トークン/レイテンシのみ・質問文なし）。
 
 ### 3.2 Web — Cloudflare Pages
 

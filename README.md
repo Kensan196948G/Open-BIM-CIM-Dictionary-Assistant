@@ -313,14 +313,14 @@ pnpm --filter @obcda/web test:e2e
 ## 🔐 セキュリティ
 
 - 🔒 管理画面はCloudflare Accessで保護
-- 🪪 WorkersでJWTとロールを検証
-- 🚫 APIキー、DB接続情報をブラウザへ配布しない
-- 🧱 SQL Injection、XSS、CSRF、SSRFを防止
-- 🧼 HTML／Markdownを安全化して表示
-- 🛑 外部取得先を公式Allowlistに限定
-- ⏱️ 検索・AI・管理APIへRate Limitを設定
-- 🧾 編集、承認、公開、ロールバックを監査記録
-- 📦 依存関係検査、SBOM、Secret ScanをCIで実施
+- 🪪 管理APIはアプリ層でもAccess JWTを検証（`CF_ACCESS_TEAM_DOMAIN`/`CF_ACCESS_AUD` 設定時・多層防御）✅実装済み
+- 🚫 APIキー、DB接続情報をブラウザへ配布しない（保存キーは `SETTINGS_ENC_KEY` によるAES-256-GCM暗号化保存）✅実装済み
+- 🧱 SQL Injection、XSS、CSRF、SSRFを防止（Drizzleパラメータ化・React・SPAへのCSP付与・取得先Allowlist）
+- 🛑 外部取得先を公式Allowlistに限定（解決後IPの私設域チェック・リダイレクト毎検証つき）
+- ⏱️ 検索・比較・AI・管理APIへRate Limitを設定（§9.2: 60/30/10/20・429+Retry-After）✅実装済み
+- 🤖 AI利用は日次トークン上限（`AI_DAILY_TOKEN_BUDGET`）で費用を制御し、利用メトリクスを `admin/ai-usage` で可視化 ✅実装済み
+- 🧾 編集、承認、公開、ロールバックを監査記録（現状はin-memory MVP・DB永続化はロードマップ）
+- 📦 依存関係検査（`pnpm audit` CIゲート）を実施。SBOM・Secret Scanは今後追加
 
 ## 🗃️ データ方針
 
