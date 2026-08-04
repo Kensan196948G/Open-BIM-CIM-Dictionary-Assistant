@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 
 import type { AppEnv } from "./middleware/context";
 import { errorResponse } from "./middleware/errors";
+import { RATE_LIMITS, rateLimit } from "./middleware/rateLimit";
 import { requestId } from "./middleware/requestId";
 import { securityHeaders } from "./middleware/securityHeaders";
 import type { DictionaryRepository } from "./repositories/types";
@@ -27,6 +28,8 @@ const DEV_ORIGIN = "http://localhost:5173";
 
 export type AppOptions = {
   llmProvider?: LlmProvider;
+  /** Disable §9.2 rate limits (integration tests that hammer endpoints). */
+  disableRateLimits?: boolean;
   /** Override for the admin settings store (tests); default in-memory. */
   aiSettingsStore?: AiSettingsStore;
   /** Per-request store override (e.g. Neon when DATABASE_URL is bound); falls back to `aiSettingsStore`. */
@@ -74,6 +77,15 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
     await next();
   });
   app.use("/api/*", auditTrail(auditLog));
+
+  if (!options.disableRateLimits) {
+    // §9.2 route-group limits. Registered per group so counters don't mix;
+    // exact paths (search/compare) need both the bare and wildcard forms.
+    app.use("/api/v1/search", rateLimit(RATE_LIMITS.search));
+    app.use("/api/v1/compare", rateLimit(RATE_LIMITS.compare));
+    app.use("/api/v1/assistant/*", rateLimit(RATE_LIMITS.assistant));
+    app.use("/api/v1/admin/*", rateLimit(RATE_LIMITS.admin));
+  }
 
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);

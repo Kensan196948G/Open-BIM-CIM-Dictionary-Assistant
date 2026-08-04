@@ -24,5 +24,7 @@ export type AppEnv = {
     LLM_API_KEY?: string;
     /** Anthropic model id (default: claude-sonnet-4-6). */
     ANTHROPIC_MODEL?: string;
+    /** Extra hostnames allowed to serve /api/v1/admin/* (comma-separated; pages-worker host guard). */
+    ADMIN_EXTRA_HOSTS?: string;
   };
 };

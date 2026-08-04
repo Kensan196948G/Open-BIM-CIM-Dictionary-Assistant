@@ -20,6 +20,8 @@ export type SearchOutcome = {
 };
 
 export interface DictionaryRepository {
+  /** Data backend reported by /system/info (fixtures = in-memory sample data). */
+  readonly backend: "fixtures" | "database";
   search(query: SearchQuery): Promise<SearchOutcome>;
   getConceptById(id: string): Promise<ConceptDetail | null>;
   getRelations(conceptId: string): Promise<ConceptRelation[] | null>;

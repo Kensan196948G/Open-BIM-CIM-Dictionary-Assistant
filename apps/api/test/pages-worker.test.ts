@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { ExecutionContext } from "hono";
 
-import pagesWorker, { CANONICAL_HOST } from "../src/pages-worker";
+import pagesWorker, { CANONICAL_HOST, isAdminHostAllowed } from "../src/pages-worker";
 
 type AssetsImpl = (request: Request) => Response | Promise<Response>;
 
@@ -99,5 +99,69 @@ describe("pagesWorker (advanced-mode entry)", () => {
     );
     expect(response.status).toBe(404);
     expect(assetsFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies security headers (CSP/HSTS/nosniff) to static-asset responses", async () => {
+    const { env } = makeEnv(() => new Response("<html>shell</html>", { status: 200 }));
+    const response = await pagesWorker.fetch(
+      new Request(`https://${CANONICAL_HOST}/`),
+      env,
+      ctx,
+    );
+    expect(response.status).toBe(200);
+    const csp = response.headers.get("content-security-policy");
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(response.headers.get("strict-transport-security")).toContain("max-age=");
+  });
+
+  it("refuses /api/v1/admin/* on per-deployment pages.dev hosts with 404", async () => {
+    const { env, assetsFetch } = makeEnv();
+    const response = await pagesWorker.fetch(
+      new Request("https://abc12345.obcda-web.pages.dev/api/v1/admin/ai-settings"),
+      env,
+      ctx,
+    );
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("NOT_FOUND");
+    expect(assetsFetch).not.toHaveBeenCalled();
+  });
+
+  it("still serves admin endpoints on the canonical host", async () => {
+    const { env } = makeEnv();
+    const response = await pagesWorker.fetch(
+      new Request(`https://${CANONICAL_HOST}/api/v1/admin/ai-settings`),
+      env,
+      ctx,
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("keeps non-admin API routes reachable on non-canonical hosts", async () => {
+    const { env } = makeEnv();
+    const response = await pagesWorker.fetch(
+      new Request("https://abc12345.obcda-web.pages.dev/api/v1/health/live"),
+      env,
+      ctx,
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("allows extra admin hosts only via ADMIN_EXTRA_HOSTS", () => {
+    expect(isAdminHostAllowed(CANONICAL_HOST, undefined)).toBe(true);
+    expect(isAdminHostAllowed("localhost", undefined)).toBe(true);
+    expect(isAdminHostAllowed("preview.obcda-web.pages.dev", undefined)).toBe(false);
+    expect(
+      isAdminHostAllowed(
+        "preview.obcda-web.pages.dev",
+        "preview.obcda-web.pages.dev, other.example.com",
+      ),
+    ).toBe(true);
+    expect(isAdminHostAllowed("evil.example.com", "preview.obcda-web.pages.dev")).toBe(
+      false,
+    );
   });
 });

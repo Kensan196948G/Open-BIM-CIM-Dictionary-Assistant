@@ -22,6 +22,7 @@ const unavailable = (): never => {
 };
 
 export class UnavailableDictionaryRepository implements DictionaryRepository {
+  readonly backend = "database" as const;
   async search(): Promise<SearchOutcome> {
     return unavailable();
   }
