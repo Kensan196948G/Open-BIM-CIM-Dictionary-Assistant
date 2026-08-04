@@ -1,7 +1,9 @@
 import {
   ANTHROPIC_API_KEY_PREFIX,
+  AdminChangeEventsQuerySchema,
   SaveAiSettingsSchema,
   TestAiSettingsSchema,
+  type AdminChangeEventsResponse,
   type AiSettingsStatus,
   type AiSettingsStatusResponse,
   type AiUsageResponse,
@@ -17,6 +19,35 @@ import {
   type DailyTokenBudget,
 } from "../services/aiUsage";
 import { DEFAULT_ANTHROPIC_MODEL, testAnthropicConnection } from "../services/llm";
+
+/** Masked key state for audit summaries — never the key itself. */
+function maskedKeyState(key: string | null): Record<string, unknown> {
+  return key
+    ? { configured: true, maskedKey: `…${key.slice(-4)}` }
+    : { configured: false };
+}
+
+/** S4: durable change audit — a failed insert must not fail the operation. */
+async function recordChange(
+  c: Context<AppEnv>,
+  action: string,
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await c.get("auditChanges").record({
+      actor: c.get("actorEmail") ?? "anonymous",
+      action,
+      targetType: "ai_settings",
+      targetId: "anthropic_api_key",
+      requestId: c.get("requestId"),
+      beforeSummary: before,
+      afterSummary: after,
+    });
+  } catch {
+    // Best-effort: the change trail must not take the admin API down with it.
+  }
+}
 
 /**
  * Admin AI settings (§6.4 / DEPLOYMENT §3.2: 管理系 API は Cloudflare Access
@@ -94,13 +125,50 @@ export function createAdminRoutes(
         },
       ]);
     }
-    await c.get("aiSettingsStore").setKey(parsed.data.apiKey);
+    const store = c.get("aiSettingsStore");
+    const previousKey = await store.getKey().catch(() => null);
+    await store.setKey(parsed.data.apiKey);
+    await recordChange(
+      c,
+      "ai_settings.save",
+      maskedKeyState(previousKey),
+      maskedKeyState(parsed.data.apiKey),
+    );
     return statusResponse(c);
   });
 
   routes.delete("/ai-settings", async (c) => {
-    await c.get("aiSettingsStore").clearKey();
+    const store = c.get("aiSettingsStore");
+    const previousKey = await store.getKey().catch(() => null);
+    await store.clearKey();
+    await recordChange(
+      c,
+      "ai_settings.clear",
+      maskedKeyState(previousKey),
+      maskedKeyState(null),
+    );
     return statusResponse(c);
+  });
+
+  // S4: 変更監査証跡の参照（DB モードでは Neon audit_events から）
+  routes.get("/change-events", async (c) => {
+    const parsed = AdminChangeEventsQuerySchema.safeParse({
+      limit: c.req.query("limit"),
+    });
+    if (!parsed.success) {
+      return errorResponse(
+        c,
+        "VALIDATION_ERROR",
+        "入力内容を確認してください。",
+        zodDetails(parsed.error),
+      );
+    }
+    const body: AdminChangeEventsResponse = {
+      data: await c.get("auditChanges").list(parsed.data.limit),
+      meta: { requestId: c.get("requestId"), nextCursor: null },
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
   });
 
   routes.post("/ai-settings/test", async (c) => {

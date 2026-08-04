@@ -1,4 +1,5 @@
 import type { DictionaryRepository } from "../repositories/types";
+import type { AuditChangeWriter } from "../services/auditEvents";
 import type { AiSettingsStore } from "../services/aiSettings";
 import type { LlmProvider } from "../services/llm";
 
@@ -13,6 +14,8 @@ export type AppEnv = {
     aiSettingsStore: AiSettingsStore;
     /** Access JWT email claim (set only when §9.1 verification ran). */
     actorEmail?: string;
+    /** S4 durable change audit (Neon audit_events in production). */
+    auditChanges: AuditChangeWriter;
   };
   Bindings: {
     /** CORS allowlist origin for the web app (wrangler.toml [vars]); absent on Node dev. */
