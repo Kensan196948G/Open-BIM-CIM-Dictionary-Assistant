@@ -10,6 +10,13 @@ import { appSettings } from "@obcda/db";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
+import {
+  decryptSetting,
+  encryptSetting,
+  importSettingsKey,
+  isEncryptedSetting,
+} from "./keyCrypto";
+
 /** Single-row key under which the Anthropic API key is stored. */
 export const ANTHROPIC_API_KEY_SETTING = "anthropic_api_key";
 
@@ -33,6 +40,44 @@ export class InMemoryAiSettingsStore implements AiSettingsStore {
 
   async clearKey(): Promise<void> {
     this.key = null;
+  }
+}
+
+/**
+ * Encrypt-at-rest decorator (§9.1): wraps any store so values are sealed with
+ * the SETTINGS_ENC_KEY KEK before they reach the backing table. Plaintext
+ * rows written before the KEK existed are still readable (lazy migration —
+ * the next save stores ciphertext). A value that fails to decrypt (tampered,
+ * or the KEK rotated without re-saving) is treated as absent so AI answers
+ * degrade to grounding-only instead of erroring.
+ */
+export class EncryptedAiSettingsStore implements AiSettingsStore {
+  private readonly keyPromise: Promise<CryptoKey>;
+
+  constructor(
+    private readonly inner: AiSettingsStore,
+    base64Kek: string,
+  ) {
+    this.keyPromise = importSettingsKey(base64Kek);
+  }
+
+  async getKey(): Promise<string | null> {
+    const stored = await this.inner.getKey();
+    if (stored === null) return null;
+    if (!isEncryptedSetting(stored)) return stored;
+    try {
+      return await decryptSetting(await this.keyPromise, stored);
+    } catch {
+      return null;
+    }
+  }
+
+  async setKey(key: string): Promise<void> {
+    await this.inner.setKey(await encryptSetting(await this.keyPromise, key));
+  }
+
+  async clearKey(): Promise<void> {
+    await this.inner.clearKey();
   }
 }
 

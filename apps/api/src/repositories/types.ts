@@ -20,12 +20,8 @@ export type SearchOutcome = {
 };
 
 export interface DictionaryRepository {
-  /**
-   * Which backing store actually serves this instance. Surfaced verbatim by
-   * /system/info so the UI mode pill reflects the real wiring instead of a
-   * hard-coded label.
-   */
-  readonly environment: "fixtures" | "database";
+  /** Data backend reported by /system/info (fixtures = in-memory sample data). */
+  readonly backend: "fixtures" | "database";
   search(query: SearchQuery): Promise<SearchOutcome>;
   getConceptById(id: string): Promise<ConceptDetail | null>;
   getRelations(conceptId: string): Promise<ConceptRelation[] | null>;

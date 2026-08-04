@@ -6,8 +6,8 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "v0.3.0 本番リリース完了（Claude Design dc 全面適用・新4画面）→ 次: #14 実LLM / #25+#29 取り込みスケールアップ・DB実記録 / #15-#17",
-  "phase": "Monitor",
+  "goal": "PR #40 merge済（セキュリティ強化+AI運用MVP・v0.4.0候補）→ 本PR: S4監査永続化+smoke/deployスクリプト → 残: 本番デプロイ(人間)・Neonスキーマ適用(人間)・#29/#25/AI-1",
+  "phase": "Verify",
   "stable": {
     "achieved": true,
     "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
@@ -25,7 +25,10 @@
     "release_tag": "v0.3.0",
     "merge_commit": "042a81a",
     "merged_at": "2026-07-24T14:05:00Z",
-    "previous_release": { "tag": "v0.2.1", "deployment_id": "0eacfc04" },
+    "previous_release": {
+      "tag": "v0.2.1",
+      "deployment_id": "0eacfc04"
+    },
     "access_protection": {
       "enabled": true,
       "since": "2026-07-24",
@@ -38,8 +41,8 @@
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 139,
-    "e2e_count": 4,
+    "test_count": 206,
+    "e2e_count": 5,
     "security_critical": 0,
     "blocker_count": 0
   },
@@ -49,7 +52,14 @@
     "coderabbit_findings_fixed": 28,
     "coderabbit_findings_skipped_already_addressed": 1,
     "security_advisories_fixed": 1,
-    "critical_high_open": 0
+    "critical_high_open": 0,
+    "comprehensive_review_2026_08_04": {
+      "report": "docs/PROJECT_REVIEW_2026-08-04.md",
+      "score_before": 57.5,
+      "score_after": 68.5,
+      "critical_open": 0,
+      "pr": 40
+    }
   },
   "execution": {
     "max_duration_minutes": 300,
@@ -67,7 +77,9 @@
   "blocked_issues": [],
   "pending_human_decisions": [
     "Pages obcda-web preview/production 環境への DATABASE_URL 登録（Neon ブランチ接続へ切替。production は Neon main スキーマ適用が先）",
-    "リポジトリの public 化（現在 private）"
+    "リポジトリの public 化（現在 private）",
+    "本番再デプロイ: 認証情報のある端末で ./scripts/deploy-pages.sh main を実行（成果物はビルド検証済み）",
+    "新 secret の設定: SETTINGS_ENC_KEY（openssl rand -base64 32）/ CF_ACCESS_TEAM_DOMAIN / CF_ACCESS_AUD / AI_DAILY_TOKEN_BUDGET"
   ],
   "learning": {
     "failure_patterns": [

@@ -22,7 +22,7 @@ export function createSystemRoutes(auditLog: AuditLog) {
       data: {
         name: "Open BIM/CIM Dictionary Assistant",
         version: packageJson.version,
-        environment: repository.environment,
+        environment: repository.backend,
         llmProvider: c.get("llmProvider").id,
         startedAt: STARTED_AT,
         counts: {

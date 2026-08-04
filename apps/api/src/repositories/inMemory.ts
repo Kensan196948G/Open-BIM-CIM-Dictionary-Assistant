@@ -22,7 +22,7 @@ import { scoreAndPaginate, type ScorableConcept } from "./ranking";
 import type { DictionaryRepository, SearchOutcome } from "./types";
 
 export class InMemoryDictionaryRepository implements DictionaryRepository {
-  readonly environment = "fixtures" as const;
+  readonly backend = "fixtures" as const;
   private readonly byId: Map<string, FixtureConcept>;
   private readonly byKey: Map<string, FixtureConcept>;
   private readonly sourceVersionIndex: Map<

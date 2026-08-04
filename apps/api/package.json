@@ -16,6 +16,7 @@
     "@obcda/domain": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.8.0",
+    "jose": "^6.2.8",
     "zod": "^4.0.0"
   },
   "devDependencies": {
