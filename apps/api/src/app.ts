@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+import { accessJwt, type AccessJwtOptions } from "./middleware/accessJwt";
 import type { AppEnv } from "./middleware/context";
 import { errorResponse } from "./middleware/errors";
 import { RATE_LIMITS, rateLimit } from "./middleware/rateLimit";
@@ -30,6 +31,8 @@ export type AppOptions = {
   llmProvider?: LlmProvider;
   /** Disable §9.2 rate limits (integration tests that hammer endpoints). */
   disableRateLimits?: boolean;
+  /** §9.1 Access JWT verification overrides (tests inject a local key set). */
+  accessJwt?: AccessJwtOptions;
   /** Override for the admin settings store (tests); default in-memory. */
   aiSettingsStore?: AiSettingsStore;
   /** Per-request store override (e.g. Neon when DATABASE_URL is bound); falls back to `aiSettingsStore`. */
@@ -86,6 +89,9 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
     app.use("/api/v1/assistant/*", rateLimit(RATE_LIMITS.assistant));
     app.use("/api/v1/admin/*", rateLimit(RATE_LIMITS.admin));
   }
+  // §9.1: admin routes verify the Access JWT app-side when CF_ACCESS_* are
+  // bound (no-op otherwise — dev/preview keep working without Access).
+  app.use("/api/v1/admin/*", accessJwt(options.accessJwt));
 
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);

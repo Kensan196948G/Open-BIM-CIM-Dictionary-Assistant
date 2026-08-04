@@ -11,6 +11,8 @@ export type AppEnv = {
     llmProvider: LlmProvider;
     /** Server-side admin settings store (in-memory on dev/tests). */
     aiSettingsStore: AiSettingsStore;
+    /** Access JWT email claim (set only when §9.1 verification ran). */
+    actorEmail?: string;
   };
   Bindings: {
     /** CORS allowlist origin for the web app (wrangler.toml [vars]); absent on Node dev. */
@@ -26,5 +28,9 @@ export type AppEnv = {
     ANTHROPIC_MODEL?: string;
     /** Extra hostnames allowed to serve /api/v1/admin/* (comma-separated; pages-worker host guard). */
     ADMIN_EXTRA_HOSTS?: string;
+    /** Cloudflare Access team domain (e.g. myteam.cloudflareaccess.com); with CF_ACCESS_AUD enables §9.1 JWT verification on admin routes. */
+    CF_ACCESS_TEAM_DOMAIN?: string;
+    /** Cloudflare Access application audience (AUD) tag. */
+    CF_ACCESS_AUD?: string;
   };
 };
