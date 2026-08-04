@@ -78,6 +78,34 @@ export const AiUsageSummarySchema = z.object({
 });
 export type AiUsageSummary = z.infer<typeof AiUsageSummarySchema>;
 
+/**
+ * GET /api/v1/admin/change-events — 変更監査証跡（§3.3 audit_events / S4）.
+ * WHO changed WHAT: actor は Access JWT の email（§9.1 検証時）。
+ * サマリーはマスク済み値のみ（生のキー・リクエストボディは含まない）。
+ */
+export const AdminChangeEventSchema = z.object({
+  id: z.string(),
+  occurredAt: z.iso.datetime(),
+  actor: z.string(),
+  action: z.string(),
+  targetType: z.string(),
+  targetId: z.string().nullish(),
+  requestId: z.string().nullish(),
+  beforeSummary: z.record(z.string(), z.unknown()).nullish(),
+  afterSummary: z.record(z.string(), z.unknown()).nullish(),
+});
+export type AdminChangeEvent = z.infer<typeof AdminChangeEventSchema>;
+
+export const AdminChangeEventsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+
+export const AdminChangeEventsResponseSchema = z.object({
+  data: z.array(AdminChangeEventSchema),
+  meta: ResponseMetaSchema,
+});
+export type AdminChangeEventsResponse = z.infer<typeof AdminChangeEventsResponseSchema>;
+
 export const AiUsageResponseSchema = z.object({
   data: z.object({
     summary: AiUsageSummarySchema,

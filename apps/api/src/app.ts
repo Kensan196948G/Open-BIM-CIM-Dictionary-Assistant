@@ -19,6 +19,10 @@ import { sourceRoutes } from "./routes/sources";
 import { createSystemRoutes } from "./routes/system";
 import { InMemoryAuditLog, type AuditLog } from "./services/auditLog";
 import {
+  InMemoryAuditChangeWriter,
+  type AuditChangeWriter,
+} from "./services/auditEvents";
+import {
   DailyTokenBudget,
   InMemoryAiUsageRecorder,
   type AiUsageRecorder,
@@ -44,6 +48,12 @@ export type AppOptions = {
   resolveAiSettingsStore?: (
     env: AppEnv["Bindings"] | undefined,
   ) => AiSettingsStore | undefined;
+  /** S4 change-audit writer override (tests); default in-memory. */
+  auditChangeWriter?: AuditChangeWriter;
+  /** Per-request writer override (Neon audit_events when DATABASE_URL is bound). */
+  resolveAuditChangeWriter?: (
+    env: AppEnv["Bindings"] | undefined,
+  ) => AuditChangeWriter | undefined;
   auditLog?: AuditLog;
   /** AI usage metrics recorder override (tests); default in-memory. */
   aiUsageRecorder?: AiUsageRecorder;
@@ -61,6 +71,8 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
   const auditLog = options.auditLog ?? new InMemoryAuditLog();
   const aiUsageRecorder = options.aiUsageRecorder ?? new InMemoryAiUsageRecorder();
   const tokenBudget = options.tokenBudget ?? new DailyTokenBudget();
+  const defaultAuditChanges =
+    options.auditChangeWriter ?? new InMemoryAuditChangeWriter();
 
   app.use("*", requestId());
   app.use("*", securityHeaders());
@@ -84,6 +96,10 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
       options.aiSettingsStore ??
       new InMemoryAiSettingsStore();
     c.set("aiSettingsStore", aiSettingsStore);
+    c.set(
+      "auditChanges",
+      options.resolveAuditChangeWriter?.(c.env) ?? defaultAuditChanges,
+    );
     c.set(
       "llmProvider",
       await resolveLlmProvider(c.env, aiSettingsStore, options.llmProvider),

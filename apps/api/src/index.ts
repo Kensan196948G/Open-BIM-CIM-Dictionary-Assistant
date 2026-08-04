@@ -10,6 +10,7 @@ import {
   NeonAiSettingsStore,
   type AiSettingsStore,
 } from "./services/aiSettings";
+import { NeonAuditChangeWriter, type AuditChangeWriter } from "./services/auditEvents";
 
 const fixtureRepository = new InMemoryDictionaryRepository(dictionaryFixture);
 const unavailableRepository = new UnavailableDictionaryRepository();
@@ -62,10 +63,27 @@ function resolveAiSettingsStore(
   return cachedSettingsStore;
 }
 
+let cachedAuditUrl: string | undefined;
+let cachedAuditWriter: NeonAuditChangeWriter | undefined;
+
+function resolveAuditChangeWriter(
+  env: AppEnv["Bindings"] | undefined,
+): AuditChangeWriter | undefined {
+  const databaseUrl = env?.DATABASE_URL;
+  if (!databaseUrl) return undefined;
+  if (databaseUrl !== cachedAuditUrl) {
+    const writer = new NeonAuditChangeWriter(databaseUrl);
+    cachedAuditWriter = writer;
+    cachedAuditUrl = databaseUrl;
+  }
+  return cachedAuditWriter;
+}
+
 /** Default app: Neon-backed when DATABASE_URL is bound (Workers), fixtures otherwise (Node dev). */
 export const app = createApp(fixtureRepository, {
   resolveRepository,
   resolveAiSettingsStore,
+  resolveAuditChangeWriter,
 });
 
 export { createApp } from "./app";

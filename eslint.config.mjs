@@ -11,6 +11,8 @@ export default tseslint.config(
       "**/.turbo/**",
       "**/coverage/**",
       "**/.wrangler/**",
+      // pages deploy artifacts (scripts/deploy-pages.sh)
+      ".deploy/**",
       // design-sync local artifacts (generated, untracked)
       "ds-bundle/**",
       ".ds-sync/**",
