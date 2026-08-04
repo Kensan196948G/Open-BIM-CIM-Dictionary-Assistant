@@ -1,8 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
+import { accessJwt, type AccessJwtOptions } from "./middleware/accessJwt";
 import type { AppEnv } from "./middleware/context";
 import { errorResponse } from "./middleware/errors";
+import { RATE_LIMITS, rateLimit } from "./middleware/rateLimit";
 import { requestId } from "./middleware/requestId";
 import { securityHeaders } from "./middleware/securityHeaders";
 import type { DictionaryRepository } from "./repositories/types";
@@ -17,6 +19,11 @@ import { sourceRoutes } from "./routes/sources";
 import { createSystemRoutes } from "./routes/system";
 import { InMemoryAuditLog, type AuditLog } from "./services/auditLog";
 import {
+  DailyTokenBudget,
+  InMemoryAiUsageRecorder,
+  type AiUsageRecorder,
+} from "./services/aiUsage";
+import {
   AnthropicLlmProvider,
   NoopLlmProvider,
   type LlmProvider,
@@ -27,6 +34,10 @@ const DEV_ORIGIN = "http://localhost:5173";
 
 export type AppOptions = {
   llmProvider?: LlmProvider;
+  /** Disable §9.2 rate limits (integration tests that hammer endpoints). */
+  disableRateLimits?: boolean;
+  /** §9.1 Access JWT verification overrides (tests inject a local key set). */
+  accessJwt?: AccessJwtOptions;
   /** Override for the admin settings store (tests); default in-memory. */
   aiSettingsStore?: AiSettingsStore;
   /** Per-request store override (e.g. Neon when DATABASE_URL is bound); falls back to `aiSettingsStore`. */
@@ -34,6 +45,10 @@ export type AppOptions = {
     env: AppEnv["Bindings"] | undefined,
   ) => AiSettingsStore | undefined;
   auditLog?: AuditLog;
+  /** AI usage metrics recorder override (tests); default in-memory. */
+  aiUsageRecorder?: AiUsageRecorder;
+  /** Daily token budget override (tests inject a fixed clock). */
+  tokenBudget?: DailyTokenBudget;
   /** Per-request repository override (e.g. Neon when DATABASE_URL is bound); falls back to `repository`. */
   resolveRepository?: (
     env: AppEnv["Bindings"] | undefined,
@@ -44,6 +59,8 @@ export type AppOptions = {
 export function createApp(repository: DictionaryRepository, options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
   const auditLog = options.auditLog ?? new InMemoryAuditLog();
+  const aiUsageRecorder = options.aiUsageRecorder ?? new InMemoryAiUsageRecorder();
+  const tokenBudget = options.tokenBudget ?? new DailyTokenBudget();
 
   app.use("*", requestId());
   app.use("*", securityHeaders());
@@ -75,11 +92,23 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
   });
   app.use("/api/*", auditTrail(auditLog));
 
+  if (!options.disableRateLimits) {
+    // §9.2 route-group limits. Registered per group so counters don't mix;
+    // exact paths (search/compare) need both the bare and wildcard forms.
+    app.use("/api/v1/search", rateLimit(RATE_LIMITS.search));
+    app.use("/api/v1/compare", rateLimit(RATE_LIMITS.compare));
+    app.use("/api/v1/assistant/*", rateLimit(RATE_LIMITS.assistant));
+    app.use("/api/v1/admin/*", rateLimit(RATE_LIMITS.admin));
+  }
+  // §9.1: admin routes verify the Access JWT app-side when CF_ACCESS_* are
+  // bound (no-op otherwise — dev/preview keep working without Access).
+  app.use("/api/v1/admin/*", accessJwt(options.accessJwt));
+
   app.route("/api/v1/search", searchRoutes);
   app.route("/api/v1/concepts", conceptRoutes);
   app.route("/api/v1/compare", compareRoutes);
-  app.route("/api/v1/assistant", createAssistantRoutes());
-  app.route("/api/v1/admin", createAdminRoutes());
+  app.route("/api/v1/assistant", createAssistantRoutes(aiUsageRecorder, tokenBudget));
+  app.route("/api/v1/admin", createAdminRoutes(aiUsageRecorder, tokenBudget));
   app.route("/api/v1/sources", sourceRoutes);
   app.route("/api/v1/system", createSystemRoutes(auditLog));
   app.route("/api/v1/health", healthRoutes);

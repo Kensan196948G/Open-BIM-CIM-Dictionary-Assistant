@@ -5,7 +5,11 @@ import { InMemoryDictionaryRepository } from "./repositories/inMemory";
 import { NeonDictionaryRepository } from "./repositories/neon";
 import type { DictionaryRepository } from "./repositories/types";
 import { UnavailableDictionaryRepository } from "./repositories/unavailable";
-import { NeonAiSettingsStore, type AiSettingsStore } from "./services/aiSettings";
+import {
+  EncryptedAiSettingsStore,
+  NeonAiSettingsStore,
+  type AiSettingsStore,
+} from "./services/aiSettings";
 
 const fixtureRepository = new InMemoryDictionaryRepository(dictionaryFixture);
 const unavailableRepository = new UnavailableDictionaryRepository();
@@ -16,7 +20,8 @@ const unavailableRepository = new UnavailableDictionaryRepository();
 let cachedDatabaseUrl: string | undefined;
 let cachedRepository: NeonDictionaryRepository | undefined;
 let cachedSettingsUrl: string | undefined;
-let cachedSettingsStore: NeonAiSettingsStore | undefined;
+let cachedSettingsKek: string | undefined;
+let cachedSettingsStore: AiSettingsStore | undefined;
 
 function resolveRepository(
   env: AppEnv["Bindings"] | undefined,
@@ -43,10 +48,16 @@ function resolveAiSettingsStore(
 ): AiSettingsStore | undefined {
   const databaseUrl = env?.DATABASE_URL;
   if (!databaseUrl) return undefined;
-  if (databaseUrl !== cachedSettingsUrl) {
-    const store = new NeonAiSettingsStore(databaseUrl);
-    cachedSettingsStore = store;
+  const kek = env?.SETTINGS_ENC_KEY || undefined;
+  if (databaseUrl !== cachedSettingsUrl || kek !== cachedSettingsKek) {
+    const neonStore = new NeonAiSettingsStore(databaseUrl);
+    // With the KEK bound, values are sealed before reaching app_settings
+    // (§9.1 — a DB read alone must not yield the live API key).
+    cachedSettingsStore = kek
+      ? new EncryptedAiSettingsStore(neonStore, kek)
+      : neonStore;
     cachedSettingsUrl = databaseUrl;
+    cachedSettingsKek = kek;
   }
   return cachedSettingsStore;
 }

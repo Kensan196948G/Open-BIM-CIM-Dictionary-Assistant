@@ -4,12 +4,18 @@ import {
   TestAiSettingsSchema,
   type AiSettingsStatus,
   type AiSettingsStatusResponse,
+  type AiUsageResponse,
   type TestAiSettingsResponse,
 } from "@obcda/contracts";
 import { Hono, type Context } from "hono";
 
 import type { AppEnv } from "../middleware/context";
 import { errorResponse, zodDetails } from "../middleware/errors";
+import {
+  parseDailyTokenBudget,
+  type AiUsageRecorder,
+  type DailyTokenBudget,
+} from "../services/aiUsage";
 import { DEFAULT_ANTHROPIC_MODEL, testAnthropicConnection } from "../services/llm";
 
 /**
@@ -17,7 +23,10 @@ import { DEFAULT_ANTHROPIC_MODEL, testAnthropicConnection } from "../services/ll
  * 必須). The key is written/cleared server-side only; GET returns just the
  * configured state and the last 4 characters — never the key itself.
  */
-export function createAdminRoutes() {
+export function createAdminRoutes(
+  usageRecorder: AiUsageRecorder,
+  tokenBudget: DailyTokenBudget,
+) {
   const routes = new Hono<AppEnv>();
 
   async function statusResponse(c: Context<AppEnv>) {
@@ -42,6 +51,25 @@ export function createAdminRoutes() {
   }
 
   routes.get("/ai-settings", (c) => statusResponse(c));
+
+  // FR-208 MVP: AI 利用メトリクス（トークン・レイテンシのみ。質問文なし）
+  routes.get("/ai-usage", (c) => {
+    const dailyTokenBudget = parseDailyTokenBudget(c.env?.AI_DAILY_TOKEN_BUDGET);
+    const body: AiUsageResponse = {
+      data: {
+        summary: usageRecorder.summary(),
+        budget: {
+          dailyTokenBudget,
+          usedToday: tokenBudget.usedToday(),
+          exhausted: tokenBudget.exhausted(dailyTokenBudget),
+        },
+        recent: usageRecorder.recent(20),
+      },
+      meta: { requestId: c.get("requestId"), nextCursor: null },
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
 
   routes.post("/ai-settings", async (c) => {
     let payload: unknown;

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { EmptyCard } from "../components/ui";
 import { usePageMeta } from "../lib/topbar";
