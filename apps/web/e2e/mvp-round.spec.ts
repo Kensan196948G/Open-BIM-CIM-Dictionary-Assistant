@@ -92,3 +92,23 @@ test("IFC detail shows schema, supertype and attributes table (FR-101〜105)", a
   await expect(page.getByText("PredefinedType").first()).toBeVisible();
   await expect(page.getByText("明示属性")).toBeVisible();
 });
+
+test("mobile: sidebar opens as a drawer and closes on navigation (U3)", async ({
+  page,
+}) => {
+  // スマホ幅（375px）で検証
+  await page.setViewportSize({ width: 375, height: 700 });
+  await page.goto("/");
+
+  // サイドバーは初期状態では見えない（ドロワー）
+  await expect(page.getByRole("navigation", { name: "メイン" })).toBeHidden();
+
+  // ハンバーガーで開く
+  await page.getByRole("button", { name: "メニューを開く" }).click();
+  await expect(page.getByRole("navigation", { name: "メイン" })).toBeVisible();
+
+  // ナビゲーションで閉じる
+  await page.getByRole("link", { name: "検索", exact: true }).click();
+  await expect(page).toHaveURL(/\/search/);
+  await expect(page.getByRole("navigation", { name: "メイン" })).toBeHidden();
+});

@@ -318,6 +318,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/pages/p
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
 | 2026-08-14 | 1.5 | **MVP URL 実デプロイ**: Pages `obcda-mvp`（deploy `836d72fd`）に `mvp.obcda.mirai-dx-platform.com` を割当・DNS CNAME 作成・全機能実測確認（43 概念・fixtures） |
+| 2026-08-14 | 1.6 | 最終ラウンド: モバイルドロワー対応（U3）・取り込みの Neon 永続化（#29・`--persist`）・web API 応答の Zod 契約検証（Q4b）・MVP 外形監視 cron（mvp-smoke.yml） |
 | 2026-08-14 | 1.4 | IFC 詳細（FR-101〜105）縦スライス実装: fixtures に ifc メタデータ（18 概念・属性/継承/抽象）・API 両実装・seed 拡張・詳細画面に属性表。MVP 用 URL 手順を dry-run 実地検証して修正 |
 | 2026-08-14 | 1.3 | MVP 評価ラウンド: 辞書 43 概念・公開辞書エクスポート(JSON/CSV)・レビューキュー実 API 化(S4 監査連携)・検索フィルタ UI・web 単体テスト・a11y 改善・MVP 用 URL 計画 |
 | 2026-08-02 | 1.2 | Anthropic AI設定（#14 相当）実装: 管理者画面からキー保存/接続テスト/リセット、サーバー側 `app_settings` 保存（migration 0002）・env 優先、AI質問の根拠付き回答 |

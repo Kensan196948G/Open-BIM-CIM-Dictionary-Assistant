@@ -411,7 +411,7 @@ flowchart LR
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
 | 実装 | ✅ MVP（fixtures 辞書 43 概念）+ Neon/Drizzle repository（#12）+ 公開辞書エクスポート + レビューキュー管理 API + 検索フィルタ UI + **IFC 詳細（属性・継承・スキーマ表示）** |
-| 検証 | ✅ 単体 227 件（api 104・ingestion 57・domain 39・contracts 11・web 9・ui 7）+ E2E 11 本（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
+| 検証 | ✅ 単体 233 件（api 104・ingestion 62・domain 39・contracts 11・web 10・ui 7）+ E2E 12 本（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
 | 公開 | 🧪 **MVP 稼働中** `https://mvp.obcda.mirai-dx-platform.com`（obcda-mvp Pages・fixtures 43 概念・2026-08-14）
 | 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.3.0**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
 
@@ -423,10 +423,10 @@ flowchart LR
 | `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・比較・エラー・AI 回答） |
 | `packages/db` | ✅ | Drizzle スキーマ 17 テーブル + `migrations/0001_init.sql` / `0002_ai_settings.sql`（up→down→up round-trip 検証済み） |
 | `apps/api` | ✅ | Hono API: 検索(フィルタ対応)/詳細/関連/比較/AI回答(Anthropic 根拠付き・未設定/障害時フォールバック)/出典/版一覧/管理系(差分レビューキュー・AI設定・変更監査)/**辞書エクスポート(JSON/CSV)**/ヘルス + CORS・セキュリティヘッダー・レート制限・Access JWT 検証 |
-| `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索(フィルタ+ページネーション)/詳細(**IFC詳細の属性表**+引用コピー)/比較/学習/AI質問(aria-live)/出典管理(レビューキュー+エクスポート)/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E 11 spec + Vitest 単体 9 件 |
-| `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント（redirect 再検証・レート制御・バックオフ）+ **BsddRestAdapter**（bSDD Dictionary/Class/Property 取得・正規化）+ 実行記録ポート（ingestion_runs/items 相当）+ dry-run CLI (#13) |
+| `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索(フィルタ+ページネーション)/詳細(**IFC詳細の属性表**+引用コピー)/比較/学習/AI質問(aria-live)/出典管理(レビューキュー+エクスポート)/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮、**モバイルドロワー対応**、**API 応答の Zod 契約検証**）+ Playwright E2E 12 spec + Vitest 単体 10 件 |
+| `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント + **BsddRestAdapter** + 実行記録ポート + dry-run CLI (#13) + **Neon 永続化レコーダー**（#29: `--persist` で ingestion_runs/items へ記録・要 DATABASE_URL） |
 | `fixtures` | ✅ | 公開サンプル辞書 **43 概念**（IFC 4.3 エンティティ/Psets/Qto・国交省要領・openBIM/bSDD 用語・draft 3 件）・3 ソース — 全て架空/公開情報由来・個人情報なし |
-| CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
+| CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査 + **MVP 外形監視 cron**） |
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
 | 非本番 preview | ✅ | Pages `obcda-web` preview ブランチ（web dist + `_worker.js` 同一オリジン構成）— ブラウザ E2E 13 項目 PASS |

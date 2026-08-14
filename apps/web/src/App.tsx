@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router";
+import { NavLink, Route, Routes, useLocation } from "react-router";
 
 import { fetchSystemInfo } from "./lib/api";
 import { CompareProvider } from "./lib/compare";
@@ -82,7 +82,32 @@ function SidebarNav() {
   );
 }
 
-function Topbar() {
+function SidebarContent() {
+  return (
+    <>
+      <div className="flex items-center gap-[11px] border-b border-line px-[18px] pt-[18px] pb-4">
+        <span
+          aria-hidden
+          className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg bg-brand text-[17px]"
+        >
+          🧭
+        </span>
+        <div className="leading-tight">
+          <div className="text-[14.5px] font-semibold tracking-[.2px] text-ink">
+            openBIM/CIM 辞書アシスタント
+          </div>
+          <div className="text-[11px] text-faint">MVP プロトタイプ</div>
+        </div>
+      </div>
+      <SidebarNav />
+      <div className="border-t border-line px-3.5 py-[13px] text-[11px] leading-relaxed text-faint">
+        公開情報の検索・理解・教育を支援します。仕様適合・契約・設計上の判断は保証しません。
+      </div>
+    </>
+  );
+}
+
+function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const meta = useTopbarMeta();
   const [environment, setEnvironment] = useState<"fixtures" | "database" | null>(null);
 
@@ -101,12 +126,21 @@ function Topbar() {
   }, []);
 
   return (
-    <header className="flex h-[62px] shrink-0 items-center gap-4 border-b border-line bg-white px-[22px]">
-      <div>
-        <h1 className="text-[16px] leading-tight font-semibold text-ink">
+    <header className="flex h-[62px] shrink-0 items-center gap-3 border-b border-line bg-white px-[18px] sm:px-[22px]">
+      <button
+        type="button"
+        aria-label="メニューを開く"
+        aria-expanded={false}
+        onClick={onMenuClick}
+        className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[7px] border border-line text-[17px] focus:outline-2 focus:outline-offset-2 focus:outline-link lg:hidden"
+      >
+        <span aria-hidden>☰</span>
+      </button>
+      <div className="min-w-0">
+        <h1 className="truncate text-[16px] leading-tight font-semibold text-ink">
           {meta.title}
         </h1>
-        <div className="text-[11.5px] text-faint">{meta.sub}</div>
+        <div className="truncate text-[11.5px] text-faint">{meta.sub}</div>
       </div>
       <div className="flex-1" />
       {environment !== null && (
@@ -123,33 +157,45 @@ function Topbar() {
 }
 
 export function App() {
+  const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+
+  // ルート遷移でモバイルドロワーを閉じる
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location]);
+
   return (
     <TopbarProvider>
       <CompareProvider>
         <div className="flex h-screen w-full overflow-hidden bg-canvas text-[14px] text-ink">
-          <aside className="flex w-[250px] shrink-0 flex-col border-r border-line bg-white text-sub">
-            <div className="flex items-center gap-[11px] border-b border-line px-[18px] pt-[18px] pb-4">
-              <span
-                aria-hidden
-                className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg bg-brand text-[17px]"
-              >
-                🧭
-              </span>
-              <div className="leading-tight">
-                <div className="text-[14.5px] font-semibold tracking-[.2px] text-ink">
-                  openBIM/CIM 辞書アシスタント
-                </div>
-                <div className="text-[11px] text-faint">MVP プロトタイプ</div>
-              </div>
-            </div>
-            <SidebarNav />
-            <div className="border-t border-line px-3.5 py-[13px] text-[11px] leading-relaxed text-faint">
-              公開情報の検索・理解・教育を支援します。仕様適合・契約・設計上の判断は保証しません。
-            </div>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-ink"
+          >
+            メインコンテンツへスキップ
+          </a>
+
+          {navOpen && (
+            <button
+              type="button"
+              aria-label="メニューを閉じる"
+              onClick={() => setNavOpen(false)}
+              className="fixed inset-0 z-30 cursor-default bg-black/30 lg:hidden"
+            />
+          )}
+
+          <aside
+            className={`fixed inset-y-0 left-0 z-40 flex w-[250px] shrink-0 flex-col border-r border-line bg-white text-sub transition-transform duration-200 lg:static lg:translate-x-0 lg:visible ${
+              navOpen ? "translate-x-0 visible" : "-translate-x-full invisible"
+            }`}
+          >
+            <SidebarContent />
           </aside>
+
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-auto p-[22px]">
+            <Topbar onMenuClick={() => setNavOpen(true)} />
+            <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-[22px]">
               <div className="mx-auto flex max-w-[1080px] flex-col gap-[18px]">
                 <Routes>
                   <Route path="/" element={<HomePage />} />
