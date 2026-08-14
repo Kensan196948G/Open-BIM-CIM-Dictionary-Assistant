@@ -101,7 +101,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignmentCant",
           "relationType": "narrower"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcLinearPositioningElement",
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcAlignmentTypeEnum",
+            "optional": true,
+            "definition": "線形の用途区分（道路・鉄道・水路など）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000002",
@@ -139,7 +154,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignment",
           "relationType": "broader"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcLinearPositioningElement",
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcAlignmentHorizontalSegmentTypeEnum",
+            "optional": true,
+            "definition": "平面線形のセグメント種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000003",
@@ -172,7 +202,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignment",
           "relationType": "broader"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcLinearPositioningElement",
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcAlignmentVerticalSegmentTypeEnum",
+            "optional": true,
+            "definition": "縦断線形のセグメント種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000004",
@@ -205,7 +250,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignment",
           "relationType": "broader"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcLinearPositioningElement",
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcAlignmentCantSegmentTypeEnum",
+            "optional": true,
+            "definition": "カントのセグメント種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000005",
@@ -233,7 +293,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignment",
           "relationType": "narrower"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": true,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "Axis",
+            "attributeKind": "explicit",
+            "dataType": "IfcAxis2PlacementLinear",
+            "optional": false,
+            "definition": "線形位置決めの基準となる軸を定義します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000006",
@@ -266,7 +341,22 @@
           "targetKey": "ifc4x3:entity:IfcAlignment",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcRoadTypeEnum",
+            "optional": true,
+            "definition": "道路の用途区分（一般道路・高速道路など）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000007",
@@ -294,7 +384,22 @@
           "labelType": "translation"
         }
       ],
-      "relations": []
+      "relations": [],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcBridgeTypeEnum",
+            "optional": true,
+            "definition": "橋梁の構造種別（桁橋・アーチ橋など）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000008",
@@ -574,7 +679,22 @@
           "targetKey": "ifc4x3:entity:IfcBridge",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcCulvertTypeEnum",
+            "optional": true,
+            "definition": "カルバートの種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000022",
@@ -607,7 +727,22 @@
           "targetKey": "ifc4x3:entity:IfcRoad",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcPavementTypeEnum",
+            "optional": true,
+            "definition": "舗装の種別（アスファルト・コンクリートなど）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000023",
@@ -640,7 +775,22 @@
           "targetKey": "ifc4x3:entity:IfcRoad",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcSignTypeEnum",
+            "optional": true,
+            "definition": "標識の種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000024",
@@ -673,7 +823,22 @@
           "targetKey": "ifc4x3:entity:IfcRoad",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcTunnelTypeEnum",
+            "optional": true,
+            "definition": "トンネルの種別（山岳・シールドなど）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000025",
@@ -710,7 +875,36 @@
           "targetKey": "ifc4x3:entity:IfcBridge",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcBuildingElement",
+        "attributes": [
+          {
+            "name": "Tag",
+            "attributeKind": "explicit",
+            "dataType": "IfcIdentifier",
+            "optional": true,
+            "definition": "部材の識別タグを指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcPileTypeEnum",
+            "optional": true,
+            "definition": "杭の種別（場所打ち・既製など）を指定します。"
+          },
+          {
+            "name": "ConstructionType",
+            "attributeKind": "explicit",
+            "dataType": "IfcPileConstructionEnum",
+            "optional": true,
+            "definition": "杭の施工種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000026",
@@ -747,7 +941,36 @@
           "targetKey": "ifc4x3:entity:IfcSlab",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": null,
+        "attributes": [
+          {
+            "name": "ElevationOfRefHeight",
+            "attributeKind": "explicit",
+            "dataType": "IfcLengthMeasure",
+            "optional": true,
+            "definition": "基準高さ（GL 等）の標高を指定します。"
+          },
+          {
+            "name": "ElevationOfTerrain",
+            "attributeKind": "explicit",
+            "dataType": "IfcLengthMeasure",
+            "optional": true,
+            "definition": "敷地地盤面の標高を指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcBuildingTypeEnum",
+            "optional": true,
+            "definition": "建物の用途種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000027",
@@ -784,7 +1007,29 @@
           "targetKey": "ifc4x3:entity:IfcBuilding",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcBuildingElement",
+        "attributes": [
+          {
+            "name": "Tag",
+            "attributeKind": "explicit",
+            "dataType": "IfcIdentifier",
+            "optional": true,
+            "definition": "部材の識別タグを指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcWallTypeEnum",
+            "optional": true,
+            "definition": "壁の種別（外壁・間仕切など）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000028",
@@ -821,7 +1066,29 @@
           "targetKey": "ifc4x3:entity:IfcBuilding",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcBuildingElement",
+        "attributes": [
+          {
+            "name": "Tag",
+            "attributeKind": "explicit",
+            "dataType": "IfcIdentifier",
+            "optional": true,
+            "definition": "部材の識別タグを指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcSlabTypeEnum",
+            "optional": true,
+            "definition": "スラブの種別（床・屋根など）を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000029",
@@ -858,7 +1125,29 @@
           "targetKey": "ifc4x3:entity:IfcBridge",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcBuildingElement",
+        "attributes": [
+          {
+            "name": "Tag",
+            "attributeKind": "explicit",
+            "dataType": "IfcIdentifier",
+            "optional": true,
+            "definition": "部材の識別タグを指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcBeamTypeEnum",
+            "optional": true,
+            "definition": "梁の種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000030",
@@ -895,7 +1184,29 @@
           "targetKey": "ifc4x3:entity:IfcBridge",
           "relationType": "related"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": false,
+        "supertypeKey": "ifc4x3:entity:IfcBuildingElement",
+        "attributes": [
+          {
+            "name": "Tag",
+            "attributeKind": "explicit",
+            "dataType": "IfcIdentifier",
+            "optional": true,
+            "definition": "部材の識別タグを指定します。"
+          },
+          {
+            "name": "PredefinedType",
+            "attributeKind": "explicit",
+            "dataType": "IfcColumnTypeEnum",
+            "optional": true,
+            "definition": "柱の種別を指定します。"
+          }
+        ]
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000031",
@@ -939,7 +1250,14 @@
           "targetKey": "ifc4x3:entity:IfcPile",
           "relationType": "narrower"
         }
-      ]
+      ],
+      "ifc": {
+        "schemaVersion": "IFC4.3.2.0",
+        "memberKind": "entity",
+        "isAbstract": true,
+        "supertypeKey": null,
+        "attributes": []
+      }
     },
     {
       "id": "018f0000-0000-7000-8000-000000000032",

@@ -8,8 +8,10 @@
  */
 
 import {
+  ATTRIBUTE_KINDS,
   CONCEPT_TYPES,
   CONCEPT_VERSION_STATUSES,
+  IFC_MEMBER_KINDS,
   LABEL_TYPES,
   LICENSE_STATUSES,
   RELATION_TYPES,
@@ -31,6 +33,24 @@ const FixtureRelationSchema = z.strictObject({
   relationType: z.enum(RELATION_TYPES),
 });
 
+/** FR-101〜105: IFC メンバー詳細（継承・属性・Pset/Qto は属性表で表現）。 */
+const FixtureIfcAttributeSchema = z.strictObject({
+  name: z.string().min(1),
+  attributeKind: z.enum(ATTRIBUTE_KINDS),
+  dataType: z.string().min(1),
+  optional: z.boolean(),
+  definition: z.string().nullable(),
+});
+
+const FixtureIfcSchema = z.strictObject({
+  schemaVersion: z.string().min(1),
+  memberKind: z.enum(IFC_MEMBER_KINDS),
+  isAbstract: z.boolean(),
+  /** canonicalKey of the supertype — resolved to an id by the repository. */
+  supertypeKey: z.string().nullable(),
+  attributes: z.array(FixtureIfcAttributeSchema),
+});
+
 const FixtureConceptSchema = z.strictObject({
   id: z.uuid(),
   canonicalKey: z.string().min(1),
@@ -47,6 +67,7 @@ const FixtureConceptSchema = z.strictObject({
   externalUri: z.url().nullable(),
   labels: z.array(FixtureLabelSchema),
   relations: z.array(FixtureRelationSchema),
+  ifc: FixtureIfcSchema.optional(),
 });
 
 const FixtureSourceVersionSchema = z.strictObject({
