@@ -64,9 +64,13 @@ test("search pagination appends the next page via cursor", async ({ page }) => {
   const countText = await page.getByText(/📊 検索結果 \d+ 件/).textContent();
   const before = Number(countText?.match(/\d+/)?.[0] ?? 0);
   await loadMore.click();
-  await expect(async () => {
-    const afterText = await page.getByText(/📊 検索結果 \d+ 件/).textContent();
-    const after = Number(afterText?.match(/\d+/)?.[0] ?? 0);
-    expect(after).toBeGreaterThan(before);
-  }).toPass();
+  await expect
+    .poll(
+      async () => {
+        const afterText = await page.getByText(/📊 検索結果 \d+ 件/).textContent();
+        return Number(afterText?.match(/\d+/)?.[0] ?? 0);
+      },
+      { timeout: 10_000 },
+    )
+    .toBeGreaterThan(before);
 });
