@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "generatedAt": "2026-07-18T00:00:00Z",
-  "note": "開発・テスト用の公開サンプルデータ。公式ソース取り込み(ingestion)実装前の暫定シードであり、officialDefinition は再配布条件確認前のため保持しない(メタデータ+独自要約のみ)。",
+  "generatedAt": "2026-08-14T00:00:00Z",
+  "note": "開発・テスト用の公開サンプルデータ。公式ソース取り込み(ingestion)実装前の暫定シードであり、officialDefinition は再配布条件確認前のため保持しない(メタデータ+独自要約のみ)。 2026-08-14: MVP 評価用に 29 概念を追加（計 43 概念・すべて架空/公開情報に基づく説明・個人情報なし）。",
   "sources": [
     {
       "id": "018f0000-0000-7000-8000-000000000101",
@@ -68,9 +68,21 @@
       "commonMisunderstanding": "IfcAlignment は 3D 形状そのものではなく、位置決めの基準となる線形の定義です。",
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "IfcAlignment", "labelType": "preferred" },
-        { "language": "ja", "label": "線形", "labelType": "translation" },
-        { "language": "ja", "label": "アライメント", "labelType": "alternative" }
+        {
+          "language": "en",
+          "label": "IfcAlignment",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "線形",
+          "labelType": "translation"
+        },
+        {
+          "language": "ja",
+          "label": "アライメント",
+          "labelType": "alternative"
+        }
       ],
       "relations": [
         {
@@ -85,7 +97,10 @@
           "targetKey": "ifc4x3:entity:IfcAlignmentVertical",
           "relationType": "narrower"
         },
-        { "targetKey": "ifc4x3:entity:IfcAlignmentCant", "relationType": "narrower" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignmentCant",
+          "relationType": "narrower"
+        }
       ]
     },
     {
@@ -108,11 +123,22 @@
           "label": "IfcAlignmentHorizontal",
           "labelType": "preferred"
         },
-        { "language": "ja", "label": "平面線形", "labelType": "translation" },
-        { "language": "ja", "label": "水平線形", "labelType": "alternative" }
+        {
+          "language": "ja",
+          "label": "平面線形",
+          "labelType": "translation"
+        },
+        {
+          "language": "ja",
+          "label": "水平線形",
+          "labelType": "alternative"
+        }
       ],
       "relations": [
-        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "broader"
+        }
       ]
     },
     {
@@ -130,11 +156,22 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "IfcAlignmentVertical", "labelType": "preferred" },
-        { "language": "ja", "label": "縦断線形", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "IfcAlignmentVertical",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "縦断線形",
+          "labelType": "translation"
+        }
       ],
       "relations": [
-        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "broader"
+        }
       ]
     },
     {
@@ -152,11 +189,22 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "IfcAlignmentCant", "labelType": "preferred" },
-        { "language": "ja", "label": "カント", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "IfcAlignmentCant",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "カント",
+          "labelType": "translation"
+        }
       ],
       "relations": [
-        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "broader" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "broader"
+        }
       ]
     },
     {
@@ -181,7 +229,10 @@
         }
       ],
       "relations": [
-        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "narrower" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "narrower"
+        }
       ]
     },
     {
@@ -199,11 +250,22 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "IfcRoad", "labelType": "preferred" },
-        { "language": "ja", "label": "道路", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "IfcRoad",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "道路",
+          "labelType": "translation"
+        }
       ],
       "relations": [
-        { "targetKey": "ifc4x3:entity:IfcAlignment", "relationType": "related" }
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "related"
+        }
       ]
     },
     {
@@ -221,8 +283,16 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "IfcBridge", "labelType": "preferred" },
-        { "language": "ja", "label": "橋梁", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "IfcBridge",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "橋梁",
+          "labelType": "translation"
+        }
       ],
       "relations": []
     },
@@ -241,7 +311,11 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "ja", "label": "BIM/CIMモデル", "labelType": "preferred" }
+        {
+          "language": "ja",
+          "label": "BIM/CIMモデル",
+          "labelType": "preferred"
+        }
       ],
       "relations": [
         {
@@ -269,7 +343,11 @@
       "commonMisunderstanding": "IFC の Attribute（スキーマ上の属性）と国内要領の「属性情報」は範囲が一致しない場合があります。文脈と版を確認してください。",
       "externalUri": null,
       "labels": [
-        { "language": "ja", "label": "属性情報", "labelType": "preferred" },
+        {
+          "language": "ja",
+          "label": "属性情報",
+          "labelType": "preferred"
+        },
         {
           "language": "en",
           "label": "attribute information",
@@ -298,8 +376,16 @@
       "commonMisunderstanding": "海外の LOD (Level of Development / Level of Detail) と同一ではありません。版・文脈により定義が異なります。",
       "externalUri": null,
       "labels": [
-        { "language": "ja", "label": "詳細度", "labelType": "preferred" },
-        { "language": "en", "label": "LOD", "labelType": "abbreviation" }
+        {
+          "language": "ja",
+          "label": "詳細度",
+          "labelType": "preferred"
+        },
+        {
+          "language": "en",
+          "label": "LOD",
+          "labelType": "abbreviation"
+        }
       ],
       "relations": [
         {
@@ -323,13 +409,30 @@
       "commonMisunderstanding": null,
       "externalUri": null,
       "labels": [
-        { "language": "en", "label": "openBIM", "labelType": "preferred" },
-        { "language": "ja", "label": "オープンBIM", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "openBIM",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "オープンBIM",
+          "labelType": "translation"
+        }
       ],
       "relations": [
-        { "targetKey": "ids1:term:IDS", "relationType": "narrower" },
-        { "targetKey": "bcf3:term:BCF", "relationType": "narrower" },
-        { "targetKey": "bsdd:term:bSDD", "relationType": "narrower" }
+        {
+          "targetKey": "ids1:term:IDS",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "bcf3:term:BCF",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "bsdd:term:bSDD",
+          "relationType": "narrower"
+        }
       ]
     },
     {
@@ -352,10 +455,23 @@
           "label": "Information Delivery Specification",
           "labelType": "preferred"
         },
-        { "language": "en", "label": "IDS", "labelType": "abbreviation" },
-        { "language": "ja", "label": "情報要件定義", "labelType": "translation" }
+        {
+          "language": "en",
+          "label": "IDS",
+          "labelType": "abbreviation"
+        },
+        {
+          "language": "ja",
+          "label": "情報要件定義",
+          "labelType": "translation"
+        }
       ],
-      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+      "relations": [
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "broader"
+        }
+      ]
     },
     {
       "id": "018f0000-0000-7000-8000-000000000013",
@@ -377,9 +493,18 @@
           "label": "BIM Collaboration Format",
           "labelType": "preferred"
         },
-        { "language": "en", "label": "BCF", "labelType": "abbreviation" }
+        {
+          "language": "en",
+          "label": "BCF",
+          "labelType": "abbreviation"
+        }
       ],
-      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+      "relations": [
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "broader"
+        }
+      ]
     },
     {
       "id": "018f0000-0000-7000-8000-000000000014",
@@ -401,9 +526,973 @@
           "label": "buildingSMART Data Dictionary",
           "labelType": "preferred"
         },
-        { "language": "en", "label": "bSDD", "labelType": "abbreviation" }
+        {
+          "language": "en",
+          "label": "bSDD",
+          "labelType": "abbreviation"
+        }
       ],
-      "relations": [{ "targetKey": "bsi:term:openBIM", "relationType": "broader" }]
+      "relations": [
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "broader"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000021",
+      "canonicalKey": "ifc4x3:entity:IfcCulvert",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcCulvert",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路・鉄道などの下を横断する暗渠（カルバート）構造物を表すエンティティです。水路・歩道・動物の通り道など目的に応じた形状を持ちます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcCulvert",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "カルバート",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000022",
+      "canonicalKey": "ifc4x3:entity:IfcPavement",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcPavement",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路などの舗装構造を表すエンティティです。表層・基層・路盤などの層構成を部材として保持します。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcPavement",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "舗装",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000023",
+      "canonicalKey": "ifc4x3:entity:IfcSign",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcSign",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路標識・案内板などのサイン施設を表すエンティティです。表示内容と設置位置を関連付けて表現できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcSign",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "標識",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000024",
+      "canonicalKey": "ifc4x3:entity:IfcTunnel",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcTunnel",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "トンネル施設全体を表すエンティティです。坑口・覆工・内部の空間構造をまとめて表現できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcTunnel",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "トンネル",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000025",
+      "canonicalKey": "ifc4x3:entity:IfcPile",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcPile",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "基礎を支える杭を表すエンティティです。場所打ち杭・既製杭などの種別と材料・寸法を属性として持ちます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcPile",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "杭",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBuildingElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000026",
+      "canonicalKey": "ifc4x3:entity:IfcBuilding",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcBuilding",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "建築物を表すエンティティです。敷地内の建物として、階・部屋などの空間構造の起点になります。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcBuilding",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "建築物",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcWall",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcSlab",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000027",
+      "canonicalKey": "ifc4x3:entity:IfcWall",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcWall",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "建物の壁を表すエンティティです。外壁・間仕切りの区別や積層構成をプロパティで表現できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcWall",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "壁",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBuildingElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBuilding",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000028",
+      "canonicalKey": "ifc4x3:entity:IfcSlab",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcSlab",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "床・屋根・基礎スラブなどの水平版状の部材を表すエンティティです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcSlab",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "スラブ",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBuildingElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBuilding",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000029",
+      "canonicalKey": "ifc4x3:entity:IfcBeam",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcBeam",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "梁を表すエンティティです。建築・橋梁の水平部材として、断面・材料・支持条件を表現できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcBeam",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "梁",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBuildingElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000030",
+      "canonicalKey": "ifc4x3:entity:IfcColumn",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcColumn",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "柱を表すエンティティです。建築・橋梁の鉛直部材として、位置・断面・材料を表現できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcColumn",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "柱",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBuildingElement",
+          "relationType": "inherits"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000031",
+      "canonicalKey": "ifc4x3:entity:IfcBuildingElement",
+      "conceptType": "entity",
+      "standardFamily": "IFC",
+      "name": "IfcBuildingElement",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "建物や構築物を構成する部材要素の抽象上位エンティティです。壁・スラブ・梁・柱・杭などの共通の上位型です。",
+      "officialDefinition": null,
+      "technicalNoteJa": "IFC4 のコア階層で定義される抽象エンティティです。実体としてはインスタンス化されません。",
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "IfcBuildingElement",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcWall",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcSlab",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcBeam",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcColumn",
+          "relationType": "narrower"
+        },
+        {
+          "targetKey": "ifc4x3:entity:IfcPile",
+          "relationType": "narrower"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000032",
+      "canonicalKey": "ifc4x3:pset:Pset_AlignmentCommon",
+      "conceptType": "pset",
+      "standardFamily": "IFC",
+      "name": "Pset_AlignmentCommon",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "線形（IfcAlignment）に共通して適用できるプロパティセットです。設計速度・用途区分などの属性情報をまとめます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Pset_AlignmentCommon",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000033",
+      "canonicalKey": "ifc4x3:qset:Qto_AlignmentBaseQuantities",
+      "conceptType": "qset",
+      "standardFamily": "IFC",
+      "name": "Qto_AlignmentBaseQuantities",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "線形の基本数量（延長など）を定義する数量セットです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Qto_AlignmentBaseQuantities",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcAlignment",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000034",
+      "canonicalKey": "ifc4x3:pset:Pset_RoadCommon",
+      "conceptType": "pset",
+      "standardFamily": "IFC",
+      "name": "Pset_RoadCommon",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路施設に共通して適用できるプロパティセットです。道路区分・設計速度などの属性情報をまとめます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Pset_RoadCommon",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000035",
+      "canonicalKey": "ifc4x3:qset:Qto_RoadBaseQuantities",
+      "conceptType": "qset",
+      "standardFamily": "IFC",
+      "name": "Qto_RoadBaseQuantities",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "道路の基本数量（路線延長・面積など）を定義する数量セットです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Qto_RoadBaseQuantities",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcRoad",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000036",
+      "canonicalKey": "ifc4x3:pset:Pset_BridgeCommon",
+      "conceptType": "pset",
+      "standardFamily": "IFC",
+      "name": "Pset_BridgeCommon",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "橋梁施設に共通して適用できるプロパティセットです。橋種・構造形式などの属性情報をまとめます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Pset_BridgeCommon",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000037",
+      "canonicalKey": "ifc4x3:qset:Qto_BridgeBaseQuantities",
+      "conceptType": "qset",
+      "standardFamily": "IFC",
+      "name": "Qto_BridgeBaseQuantities",
+      "version": "IFC4.3.2.0",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "橋梁の基本数量（橋長・幅員など）を定義する数量セットです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Qto_BridgeBaseQuantities",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcBridge",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000038",
+      "canonicalKey": "ifc4x3:pset:Pset_GeotechnicalCommon",
+      "conceptType": "pset",
+      "standardFamily": "IFC",
+      "name": "Pset_GeotechnicalCommon",
+      "version": "IFC4.3.2.0",
+      "status": "draft",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "地盤・土質情報に共通して適用するプロパティセット（レビュー待ちのドラフト項目のサンプル）。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Pset_GeotechnicalCommon",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000039",
+      "canonicalKey": "ifc4x3:pset:Pset_CulvertCommon",
+      "conceptType": "pset",
+      "standardFamily": "IFC",
+      "name": "Pset_CulvertCommon",
+      "version": "IFC4.3.2.0",
+      "status": "draft",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "カルバート施設に共通して適用するプロパティセット（レビュー待ちのドラフト項目のサンプル）。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Pset_CulvertCommon",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "ifc4x3:entity:IfcCulvert",
+          "relationType": "applicable_pset"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000040",
+      "canonicalKey": "ifc4x3:qset:Qto_CulvertBaseQuantities",
+      "conceptType": "qset",
+      "standardFamily": "IFC",
+      "name": "Qto_CulvertBaseQuantities",
+      "version": "IFC4.3.2.0",
+      "status": "draft",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000201",
+      "summaryJa": "カルバートの基本数量を定義する数量セット（レビュー待ちのドラフト項目のサンプル）。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Qto_CulvertBaseQuantities",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000041",
+      "canonicalKey": "mlit_bimcim_r8:document_term:電子納品",
+      "conceptType": "entity",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "電子納品",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "成果物を電子データにより納品することを指す国内 BIM/CIM 運用上の用語です。ファイル形式・フォルダ構成などの納品基準が定められます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "ja",
+          "label": "電子納品",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:3次元モデル",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000042",
+      "canonicalKey": "mlit_bimcim_r8:document_term:点群データ",
+      "conceptType": "entity",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "点群データ",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "レーザースキャナなどで取得した位置情報の集合を指す用語です。現況測量・出来形管理などに活用されます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "ja",
+          "label": "点群データ",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:3次元モデル",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:BIM/CIMモデル",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000043",
+      "canonicalKey": "mlit_bimcim_r8:document_term:3次元モデル",
+      "conceptType": "entity",
+      "standardFamily": "MLIT_BIMCIM",
+      "name": "3次元モデル",
+      "version": "令和8年3月",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000202",
+      "summaryJa": "構造物や地形を三次元で表現したモデルを指す国内 BIM/CIM 運用上の用語です。BIM/CIM モデルの構成要素です。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "ja",
+          "label": "3次元モデル",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:電子納品",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:点群データ",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "mlit_bimcim_r8:document_term:BIM/CIMモデル",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000044",
+      "canonicalKey": "bsi:term:IFC",
+      "conceptType": "entity",
+      "standardFamily": "OTHER",
+      "name": "IFC",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "Industry Foundation Classes。建築・土木施設のデータ交換のための buildingSMART のオープン標準データモデルです。",
+      "officialDefinition": null,
+      "technicalNoteJa": "IFC4.3 では道路・橋梁・トンネルなどのインフラ領域が拡張されました。",
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Industry Foundation Classes",
+          "labelType": "preferred"
+        },
+        {
+          "language": "en",
+          "label": "IFC",
+          "labelType": "abbreviation"
+        },
+        {
+          "language": "ja",
+          "label": "IFC",
+          "labelType": "preferred"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000045",
+      "canonicalKey": "bsi:term:MVD",
+      "conceptType": "entity",
+      "standardFamily": "OTHER",
+      "name": "MVD",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "Model View Definition。IFC データの交換目的に応じた部分集合（モデルビュー）を定義する buildingSMART の仕組みです。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Model View Definition",
+          "labelType": "preferred"
+        },
+        {
+          "language": "en",
+          "label": "MVD",
+          "labelType": "abbreviation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsi:term:IFC",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000046",
+      "canonicalKey": "bsi:term:IDM",
+      "conceptType": "entity",
+      "standardFamily": "OTHER",
+      "name": "IDM",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "Information Delivery Manual。BIM の情報交換プロセスを記述する buildingSMART の標準手法です。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Information Delivery Manual",
+          "labelType": "preferred"
+        },
+        {
+          "language": "en",
+          "label": "IDM",
+          "labelType": "abbreviation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsi:term:openBIM",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000047",
+      "canonicalKey": "bsdd:term:Classification",
+      "conceptType": "entity",
+      "standardFamily": "BSDD",
+      "name": "Classification",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "bSDD で公開される分類体系（辞書）を指す用語です。安定 URI によりクラス・プロパティを参照できます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Classification",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "分類体系",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsdd:term:bSDD",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000048",
+      "canonicalKey": "bsdd:term:Class",
+      "conceptType": "entity",
+      "standardFamily": "BSDD",
+      "name": "Class",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "bSDD の分類体系を構成する個々の分類項目を指す用語です。各クラスは定義・URI・プロパティを持ちます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Class",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "クラス",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsdd:term:bSDD",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "bsdd:term:Classification",
+          "relationType": "related"
+        }
+      ]
+    },
+    {
+      "id": "018f0000-0000-7000-8000-000000000049",
+      "canonicalKey": "bsdd:term:Property",
+      "conceptType": "entity",
+      "standardFamily": "BSDD",
+      "name": "Property",
+      "version": "2026-07",
+      "status": "published",
+      "sourceVersionId": "018f0000-0000-7000-8000-000000000203",
+      "summaryJa": "bSDD で定義されるプロパティ（属性項目）を指す用語です。単位・データ型・定義が安定 URI で公開されます。",
+      "officialDefinition": null,
+      "technicalNoteJa": null,
+      "commonMisunderstanding": null,
+      "externalUri": null,
+      "labels": [
+        {
+          "language": "en",
+          "label": "Property",
+          "labelType": "preferred"
+        },
+        {
+          "language": "ja",
+          "label": "プロパティ",
+          "labelType": "translation"
+        }
+      ],
+      "relations": [
+        {
+          "targetKey": "bsdd:term:bSDD",
+          "relationType": "related"
+        },
+        {
+          "targetKey": "bsdd:term:Class",
+          "relationType": "related"
+        }
+      ]
     }
   ]
 }
