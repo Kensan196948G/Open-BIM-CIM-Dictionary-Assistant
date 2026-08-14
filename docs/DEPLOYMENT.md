@@ -270,23 +270,29 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 ### デプロイ手順（Cloudflare 認証のある端末で人間が実行）
 
 ```bash
-# 1) web ビルド（同一オリジン構成・環境変数は空値を明示）
-cd apps/web && VITE_API_BASE_URL= pnpm build
+# 1) worker バンドル生成（apps/api で — Pages 用エントリ。dry-run は認証不要・実地検証済み）
+cd apps/api && mkdir -p /tmp/mvp-bundle && npx wrangler deploy src/pages-worker.ts --dry-run --outdir /tmp/mvp-bundle
+#    → /tmp/mvp-bundle/pages-worker.js が生成される（約 1.1MB）
 
-# 2) Pages フルスタック worker を同一ディレクトリへ
-cd ../api && pnpm exec esbuild src/pages-worker.ts --bundle --format=esm --outfile=../web/dist/_worker.js --platform=browser --target=es2022
-echo '{"version":1,"include":["/*"],"exclude":[]}' > ../web/dist/_routes.json
+# 2) web ビルド（同一オリジン構成・環境変数は空値を明示）
+cd ../web && VITE_API_BASE_URL= pnpm build
 
-# 3) MVP 専用 Pages プロジェクト（例: obcda-mvp）へデプロイ
-cd ../web && npx wrangler pages deploy dist --project-name=obcda-mvp
+# 3) dist + _worker.js + _routes.json を 1 ディレクトリへ
+mkdir -p /tmp/mvp-dist && cp -r dist/* /tmp/mvp-dist/
+cp /tmp/mvp-bundle/pages-worker.js /tmp/mvp-dist/_worker.js
+echo '{"version":1,"include":["/*"],"exclude":[]}' > /tmp/mvp-dist/_routes.json
 
-# 4) カスタムドメイン mvp.obcda.mirai-dx-platform.com を Pages プロジェクトへ割当
+# 4) MVP 専用 Pages プロジェクト（例: obcda-mvp）へデプロイ
+cd ../web && npx wrangler pages deploy /tmp/mvp-dist --project-name=obcda-mvp
+
+# 5) カスタムドメイン mvp.obcda.mirai-dx-platform.com を Pages プロジェクトへ割当
 #    （Cloudflare ダッシュボード → obcda-mvp → Custom domains）
 
-# 5) 動作確認: ホーム/検索(フィルタ)/詳細(引用コピー)/出典(エクスポート・レビューキュー)/監査ログ
+# 6) 動作確認: ホーム/検索(フィルタ)/詳細(引用コピー)/出典(エクスポート・レビューキュー)/監査ログ
 ```
 
-> 注: 本ラウンドの環境では Cloudflare 認証（wrangler）が無くデプロイを実行できないため、上記は検証済み手順として文書化する。マージ後の CI（Pages preview）または認証付き端末での実行を以て URL を確定する。MVP は fixtures モード・ダミーデータ保持のまま運用し、実データ投入は行わない。
+> ✅ **検証済み（2026-08-14）**: 手順 1〜3 は本環境で実行済み（wrangler dry-run は認証不要で成功 — `_worker.js` 生成・web ビルド・`_routes.json` 構成を確認）。手順 4〜5 は Cloudflare 認証（`wrangler login` または `CLOUDFLARE_API_TOKEN`）が必要なため未実行。※ esbuild は apps/api の直接依存にないため `pnpm exec esbuild` では実行できない — 上記 dry-run 方式が正。
+> 注: 既存 preview（`https://preview.obcda-web.pages.dev`）は **Neon preview ブランチ接続済み・database モードで稼働中**（2026-07-24 設定・実測 200 OK）。MVP は fixtures モード・ダミーデータ保持のまま運用し、実データ投入は行わない。
 
 ---
 
@@ -294,6 +300,7 @@ cd ../web && npx wrangler pages deploy dist --project-name=obcda-mvp
 
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
+| 2026-08-14 | 1.4 | IFC 詳細（FR-101〜105）縦スライス実装: fixtures に ifc メタデータ（18 概念・属性/継承/抽象）・API 両実装・seed 拡張・詳細画面に属性表。MVP 用 URL 手順を dry-run 実地検証して修正 |
 | 2026-08-14 | 1.3 | MVP 評価ラウンド: 辞書 43 概念・公開辞書エクスポート(JSON/CSV)・レビューキュー実 API 化(S4 監査連携)・検索フィルタ UI・web 単体テスト・a11y 改善・MVP 用 URL 計画 |
 | 2026-08-02 | 1.2 | Anthropic AI設定（#14 相当）実装: 管理者画面からキー保存/接続テスト/リセット、サーバー側 `app_settings` 保存（migration 0002）・env 優先、AI質問の根拠付き回答 |
 | 2026-07-18 | 1.0 | 初版（MVP fixtures 構成のデプロイ・ロールバック・運用・障害対応） |
