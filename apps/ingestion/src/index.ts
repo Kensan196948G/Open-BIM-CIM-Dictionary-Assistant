@@ -4,4 +4,5 @@ export * from "./fetch/guard";
 export * from "./fetch/client";
 export * from "./fetch/rate";
 export * from "./pipeline/recorder";
+export * from "./pipeline/neonRecorder";
 export * from "./pipeline/runner";

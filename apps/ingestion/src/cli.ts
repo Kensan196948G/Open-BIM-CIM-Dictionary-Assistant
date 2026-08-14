@@ -4,12 +4,15 @@
  * recorder and a summary (plus sample normalized records) to stdout.
  *
  *   pnpm --filter @obcda/ingestion dry-run [-- --dictionary <uri>] \
- *     [--max-items 50] [--page-size 100] [--max-pages 1] [--samples 3]
+ *     [--max-items 50] [--page-size 100] [--max-pages 1] [--samples 3] [--persist]
  *
+ * `--persist` (#29) を付けると実行記録が Neon（ingestion_runs / ingestion_items）へ
+ * 永続化される（要 DATABASE_URL 環境変数。値は表示しない）。
  * Defaults stay polite to the public API: one page per list, 50 items.
  */
 
 import { BsddRestAdapter } from "./adapters/bsdd";
+import { NeonIngestionRecorder, requireDatabaseUrl } from "./pipeline/neonRecorder";
 import { InMemoryIngestionRecorder } from "./pipeline/recorder";
 import { runIngestion } from "./pipeline/runner";
 
@@ -52,9 +55,14 @@ async function main(): Promise<number> {
     pageSize,
     maxPagesPerList: maxPages,
   });
-  const recorder = new InMemoryIngestionRecorder();
+  const persist = args.includes("--persist");
+  const recorder = persist
+    ? NeonIngestionRecorder.connect(requireDatabaseUrl())
+    : new InMemoryIngestionRecorder();
 
-  console.error(`bsdd dry-run: ${dictionaryUri}`);
+  console.error(
+    `bsdd ${persist ? "run (persisted to Neon)" : "dry-run"}: ${dictionaryUri}`,
+  );
   const summaries = await runIngestion({
     adapter,
     ctx: { fetchImpl: fetch, allowedHosts: BSDD_ALLOWED_HOSTS, now: () => new Date() },
@@ -64,17 +72,21 @@ async function main(): Promise<number> {
 
   for (const summary of summaries) {
     const { records, ...rest } = summary;
+    const recordedItemStatuses =
+      recorder instanceof InMemoryIngestionRecorder
+        ? recorder.runs
+            .find((run) => run.runId === summary.runId)
+            ?.items.reduce<Record<string, number>>((acc, item) => {
+              acc[item.status] = (acc[item.status] ?? 0) + 1;
+              return acc;
+            }, {})
+        : undefined;
     const report = JSON.stringify(
       {
         ...rest,
         recordCount: records.length,
         sampleRecords: records.slice(0, samples),
-        recordedItemStatuses: recorder.runs
-          .find((run) => run.runId === summary.runId)
-          ?.items.reduce<Record<string, number>>((acc, item) => {
-            acc[item.status] = (acc[item.status] ?? 0) + 1;
-            return acc;
-          }, {}),
+        ...(recordedItemStatuses ? { recordedItemStatuses } : {}),
       },
       null,
       2,
