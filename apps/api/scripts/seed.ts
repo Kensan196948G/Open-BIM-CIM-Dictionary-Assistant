@@ -126,6 +126,35 @@ async function main(): Promise<void> {
         `,
       ),
     ),
+    // FR-101〜105: IFC メンバー（継承）と属性（明示/派生/逆）の投入
+    ...concepts.flatMap((concept) => {
+      if (!concept.ifc) return [];
+      return [
+        sql`
+          INSERT INTO ifc_members (
+            concept_id, schema_version, member_kind, is_abstract, supertype_concept_id
+          )
+          VALUES (
+            ${concept.id}, ${concept.ifc.schemaVersion}, ${concept.ifc.memberKind},
+            ${concept.ifc.isAbstract},
+            ${concept.ifc.supertypeKey ? resolveTargetId(concept.ifc.supertypeKey) : null}
+          )
+          ON CONFLICT (concept_id) DO NOTHING
+        `,
+        ...concept.ifc.attributes.map(
+          (attribute, ordinal) => sql`
+          INSERT INTO ifc_attributes (
+            owner_concept_id, name, attribute_kind, data_type, optional, ordinal, definition
+          )
+          VALUES (
+            ${concept.id}, ${attribute.name}, ${attribute.attributeKind},
+            ${attribute.dataType}, ${attribute.optional}, ${ordinal}, ${attribute.definition}
+          )
+          ON CONFLICT DO NOTHING
+        `,
+        ),
+      ];
+    }),
   ];
 
   await sql.transaction(statements);

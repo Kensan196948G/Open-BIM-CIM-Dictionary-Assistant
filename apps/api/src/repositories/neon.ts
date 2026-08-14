@@ -12,6 +12,7 @@ import type {
   ConceptDetail,
   ConceptRelation,
   DictionaryExportConcept,
+  IfcMember,
   SearchQuery,
   SourceSummary,
   SourceVersionSummary,
@@ -19,7 +20,9 @@ import type {
 } from "@obcda/contracts";
 import { concepts, sources, sourceVersions } from "@obcda/db";
 import type {
+  AttributeKind,
   ConceptType,
+  IfcMemberKind,
   LicenseStatus,
   RelationType,
   StandardFamily,
@@ -174,6 +177,7 @@ export class NeonDictionaryRepository implements DictionaryRepository {
     if (!row) return null;
 
     const labels = await this.fetchConceptLabels(row.id);
+    const ifc = await this.fetchIfcMember(row.id);
 
     return {
       id: row.id,
@@ -198,6 +202,7 @@ export class NeonDictionaryRepository implements DictionaryRepository {
         retrievedAt: new Date(row.retrievedAt).toISOString(),
       },
       externalUri: row.externalUri,
+      ...(ifc ? { ifc } : {}),
     };
   }
 
@@ -501,5 +506,57 @@ export class NeonDictionaryRepository implements DictionaryRepository {
       LIMIT 1
     `);
     return rows.length > 0;
+  }
+
+  /** FR-101〜105: ifc_members + ifc_attributes から IFC 詳細を組み立てる（未収録なら undefined）。 */
+  private async fetchIfcMember(conceptId: string): Promise<IfcMember | undefined> {
+    const { rows } = await this.db.execute<{
+      schemaVersion: string;
+      memberKind: IfcMemberKind;
+      isAbstract: boolean;
+      supertypeConceptId: string | null;
+      supertypeName: string | null;
+    }>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        im.schema_version AS "schemaVersion",
+        im.member_kind AS "memberKind",
+        im.is_abstract AS "isAbstract",
+        im.supertype_concept_id AS "supertypeConceptId",
+        scv."name" AS "supertypeName"
+      FROM ifc_members im
+      LEFT JOIN current_version scv ON scv."conceptId" = im.supertype_concept_id
+      WHERE im.concept_id = ${conceptId}
+      LIMIT 1
+    `);
+    const member = rows[0];
+    if (!member) return undefined;
+
+    const { rows: attributeRows } = await this.db.execute<{
+      name: string;
+      attributeKind: AttributeKind;
+      dataType: string;
+      optional: boolean;
+      definition: string | null;
+    }>(sql`
+      SELECT
+        name AS "name",
+        attribute_kind AS "attributeKind",
+        data_type AS "dataType",
+        optional AS "optional",
+        definition AS "definition"
+      FROM ifc_attributes
+      WHERE owner_concept_id = ${conceptId}
+      ORDER BY ordinal
+    `);
+
+    return {
+      schemaVersion: member.schemaVersion,
+      memberKind: member.memberKind,
+      isAbstract: member.isAbstract,
+      supertypeConceptId: member.supertypeConceptId,
+      supertypeName: member.supertypeName,
+      attributes: attributeRows,
+    };
   }
 }
