@@ -11,6 +11,7 @@ import { neon } from "@neondatabase/serverless";
 import type {
   ConceptDetail,
   ConceptRelation,
+  DictionaryExportConcept,
   SearchQuery,
   SourceSummary,
   SourceVersionSummary,
@@ -293,6 +294,81 @@ export class NeonDictionaryRepository implements DictionaryRepository {
     return rows[0]!;
   }
 
+  /** §17 公開辞書エクスポート（FR-308）— 全公開概念を詳細+関連付きで返す。 */
+  async exportPublishedConcepts(): Promise<DictionaryExportConcept[]> {
+    const { rows } = await this.db.execute<{
+      id: string;
+      canonicalKey: string;
+      conceptType: ConceptType;
+      standardFamily: StandardFamily;
+      externalUri: string | null;
+      name: string;
+      summaryJa: string | null;
+      officialDefinition: string | null;
+      technicalNoteJa: string | null;
+      commonMisunderstanding: string | null;
+      versionLabel: string;
+      retrievedAt: string | Date;
+      sourceCode: string;
+      sourcePublisher: string;
+      sourceNameJa: string;
+      sourceBaseUrl: string;
+      sourceLicenseStatus: LicenseStatus;
+    }>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        c.id AS "id",
+        c.canonical_key AS "canonicalKey",
+        c.concept_type AS "conceptType",
+        c.standard_family AS "standardFamily",
+        c.external_uri AS "externalUri",
+        cv."name" AS "name",
+        cv."summaryJa" AS "summaryJa",
+        cv."officialDefinition" AS "officialDefinition",
+        cv."technicalNoteJa" AS "technicalNoteJa",
+        cv."commonMisunderstanding" AS "commonMisunderstanding",
+        cv."versionLabel" AS "versionLabel",
+        cv."retrievedAt" AS "retrievedAt",
+        cv."sourceCode" AS "sourceCode",
+        cv."sourcePublisher" AS "sourcePublisher",
+        cv."sourceNameJa" AS "sourceNameJa",
+        cv."sourceBaseUrl" AS "sourceBaseUrl",
+        cv."sourceLicenseStatus" AS "sourceLicenseStatus"
+      FROM concepts c
+      JOIN current_version cv ON cv."conceptId" = c.id
+      ORDER BY c.id
+    `);
+    const conceptIds = rows.map((row) => row.id);
+    const labelsByConceptId = await this.fetchExportLabels(conceptIds);
+    const relationsByConceptId = await this.fetchExportRelations(conceptIds);
+
+    return rows.map((row) => ({
+      id: row.id,
+      canonicalKey: row.canonicalKey,
+      conceptType: row.conceptType,
+      standardFamily: row.standardFamily,
+      name: row.name,
+      version: row.versionLabel,
+      status: "published" as const,
+      summaryJa: row.summaryJa,
+      officialDefinition: row.officialDefinition,
+      technicalNoteJa: row.technicalNoteJa,
+      commonMisunderstanding: row.commonMisunderstanding,
+      labels: labelsByConceptId.get(row.id) ?? [],
+      source: {
+        sourceCode: row.sourceCode,
+        publisher: row.sourcePublisher,
+        documentName: row.sourceNameJa,
+        versionLabel: row.versionLabel,
+        url: row.sourceBaseUrl,
+        licenseStatus: row.sourceLicenseStatus,
+        retrievedAt: new Date(row.retrievedAt).toISOString(),
+      },
+      externalUri: row.externalUri,
+      relations: relationsByConceptId.get(row.id) ?? [],
+    }));
+  }
+
   /** Contract: false (never throws) when the store is unreachable — used as a liveness probe. */
   async isReady(): Promise<boolean> {
     try {
@@ -351,6 +427,69 @@ export class NeonDictionaryRepository implements DictionaryRepository {
         AND (tl.source_version_id IS NULL OR tl.source_version_id = cv."sourceVersionId")
     `);
     return rows;
+  }
+
+  /** Batch variant of fetchConceptLabels for §17 export. */
+  private async fetchExportLabels(
+    conceptIds: string[],
+  ): Promise<Map<string, TermLabel[]>> {
+    const map = new Map<string, TermLabel[]>();
+    if (conceptIds.length === 0) return map;
+    const { rows } = await this.db.execute<TermLabel & { conceptId: string }>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        tl.concept_id AS "conceptId",
+        tl.language AS "language",
+        tl.label AS "label",
+        tl.label_type AS "labelType"
+      FROM term_labels tl
+      JOIN current_version cv ON cv."conceptId" = tl.concept_id
+      WHERE ${inArray(sql`tl.concept_id`, conceptIds)}
+        AND (tl.source_version_id IS NULL OR tl.source_version_id = cv."sourceVersionId")
+    `);
+    for (const row of rows) {
+      const list = map.get(row.conceptId) ?? [];
+      list.push({ language: row.language, label: row.label, labelType: row.labelType });
+      map.set(row.conceptId, list);
+    }
+    return map;
+  }
+
+  /** Relation target canonical keys for §17 export (targets must be published). */
+  private async fetchExportRelations(
+    conceptIds: string[],
+  ): Promise<
+    Map<string, { relationType: RelationType; targetCanonicalKey: string }[]>
+  > {
+    const map = new Map<
+      string,
+      { relationType: RelationType; targetCanonicalKey: string }[]
+    >();
+    if (conceptIds.length === 0) return map;
+    const { rows } = await this.db.execute<{
+      sourceConceptId: string;
+      relationType: RelationType;
+      targetCanonicalKey: string;
+    }>(sql`
+      WITH ${CURRENT_VERSION_CTE}
+      SELECT
+        cr.source_concept_id AS "sourceConceptId",
+        cr.relation_type AS "relationType",
+        tc.canonical_key AS "targetCanonicalKey"
+      FROM concept_relations cr
+      JOIN concepts tc ON tc.id = cr.target_concept_id
+      JOIN current_version tcv ON tcv."conceptId" = tc.id
+      WHERE ${inArray(sql`cr.source_concept_id`, conceptIds)}
+    `);
+    for (const row of rows) {
+      const list = map.get(row.sourceConceptId) ?? [];
+      list.push({
+        relationType: row.relationType,
+        targetCanonicalKey: row.targetCanonicalKey,
+      });
+      map.set(row.sourceConceptId, list);
+    }
+    return map;
   }
 
   private async isConceptCurrentlyPublished(conceptId: string): Promise<boolean> {

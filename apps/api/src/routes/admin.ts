@@ -1,12 +1,15 @@
 import {
   ANTHROPIC_API_KEY_PREFIX,
   AdminChangeEventsQuerySchema,
+  ReviewDecisionSchema,
   SaveAiSettingsSchema,
   TestAiSettingsSchema,
   type AdminChangeEventsResponse,
   type AiSettingsStatus,
   type AiSettingsStatusResponse,
   type AiUsageResponse,
+  type ReviewDecisionResponse,
+  type ReviewQueueResponse,
   type TestAiSettingsResponse,
 } from "@obcda/contracts";
 import { Hono, type Context } from "hono";
@@ -19,6 +22,7 @@ import {
   type DailyTokenBudget,
 } from "../services/aiUsage";
 import { DEFAULT_ANTHROPIC_MODEL, testAnthropicConnection } from "../services/llm";
+import { InMemoryReviewStore, type ReviewStore } from "../services/reviewQueue";
 
 /** Masked key state for audit summaries — never the key itself. */
 function maskedKeyState(key: string | null): Record<string, unknown> {
@@ -31,6 +35,8 @@ function maskedKeyState(key: string | null): Record<string, unknown> {
 async function recordChange(
   c: Context<AppEnv>,
   action: string,
+  targetType: string,
+  targetId: string,
   before: Record<string, unknown>,
   after: Record<string, unknown>,
 ): Promise<void> {
@@ -38,8 +44,8 @@ async function recordChange(
     await c.get("auditChanges").record({
       actor: c.get("actorEmail") ?? "anonymous",
       action,
-      targetType: "ai_settings",
-      targetId: "anthropic_api_key",
+      targetType,
+      targetId,
       requestId: c.get("requestId"),
       beforeSummary: before,
       afterSummary: after,
@@ -57,6 +63,7 @@ async function recordChange(
 export function createAdminRoutes(
   usageRecorder: AiUsageRecorder,
   tokenBudget: DailyTokenBudget,
+  reviewStore: ReviewStore = new InMemoryReviewStore(),
 ) {
   const routes = new Hono<AppEnv>();
 
@@ -131,6 +138,8 @@ export function createAdminRoutes(
     await recordChange(
       c,
       "ai_settings.save",
+      "ai_settings",
+      "anthropic_api_key",
       maskedKeyState(previousKey),
       maskedKeyState(parsed.data.apiKey),
     );
@@ -144,6 +153,8 @@ export function createAdminRoutes(
     await recordChange(
       c,
       "ai_settings.clear",
+      "ai_settings",
+      "anthropic_api_key",
       maskedKeyState(previousKey),
       maskedKeyState(null),
     );
@@ -222,6 +233,72 @@ export function createAdminRoutes(
         "Anthropic API への接続に失敗しました。APIキーとモデル設定を確認してください。",
       );
     }
+  });
+
+  // FR-303〜305: 差分レビューキュー（デモ用 — 取り込み実記録 #29 と共に実データ化）
+  routes.get("/review-queue", (c) => {
+    const body: ReviewQueueResponse = {
+      data: reviewStore.list(),
+      meta: { requestId: c.get("requestId"), nextCursor: null },
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
+  });
+
+  routes.post("/reviews/:id/decision", async (c) => {
+    let payload: unknown;
+    try {
+      payload = await c.req.json();
+    } catch {
+      return errorResponse(c, "VALIDATION_ERROR", "入力内容を確認してください。", [
+        { field: "(body)", reason: "invalid_json" },
+      ]);
+    }
+    const parsed = ReviewDecisionSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse(c, "VALIDATION_ERROR", "入力内容を確認してください。", [
+        ...zodDetails(parsed.error),
+      ]);
+    }
+
+    const id = c.req.param("id");
+    const before = reviewStore.get(id);
+    if (!before) {
+      return errorResponse(c, "NOT_FOUND", "指定されたレビュー項目が見つかりません。");
+    }
+    const actor = c.get("actorEmail") ?? "demo-admin";
+    // snapshot before deciding — decide() mutates the store entry in place
+    const beforeSnapshot = {
+      reviewId: before.id,
+      targetKey: before.targetKey,
+      status: before.status,
+    };
+    const after = reviewStore.decide(id, parsed.data.decision, actor);
+    if (!after) {
+      return errorResponse(c, "NOT_FOUND", "指定されたレビュー項目が見つかりません。");
+    }
+
+    // S4: 承認/却下は変更監査へ記録（before/after に機密情報は含まない）
+    await recordChange(
+      c,
+      `review.${parsed.data.decision}`,
+      "review_queue",
+      before.id,
+      beforeSnapshot,
+      {
+        reviewId: after.id,
+        targetKey: after.targetKey,
+        status: after.status,
+        decidedBy: after.decidedBy,
+      },
+    );
+
+    const body: ReviewDecisionResponse = {
+      data: after,
+      meta: { requestId: c.get("requestId"), nextCursor: null },
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json(body);
   });
 
   return routes;

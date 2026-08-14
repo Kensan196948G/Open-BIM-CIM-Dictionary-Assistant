@@ -7,6 +7,7 @@
 import type {
   ConceptDetail,
   ConceptRelation,
+  DictionaryExportConcept,
   SearchQuery,
   SourceSummary,
   SourceVersionSummary,
@@ -147,6 +148,32 @@ export class InMemoryDictionaryRepository implements DictionaryRepository {
       ).length,
       sources: this.fixture.sources.length,
     };
+  }
+
+  async exportPublishedConcepts(): Promise<DictionaryExportConcept[]> {
+    const exported: DictionaryExportConcept[] = [];
+    for (const concept of this.fixture.concepts) {
+      if (concept.status !== "published") continue;
+      const detail = await this.getConceptById(concept.id);
+      if (!detail) continue;
+      exported.push({
+        ...detail,
+        relations: concept.relations
+          .map((relation) => {
+            const target = this.byKey.get(relation.targetKey);
+            return target
+              ? {
+                  relationType: relation.relationType,
+                  targetCanonicalKey: target.canonicalKey,
+                }
+              : null;
+          })
+          .filter(
+            (relation): relation is NonNullable<typeof relation> => relation !== null,
+          ),
+      });
+    }
+    return exported;
   }
 
   async isReady(): Promise<boolean> {
