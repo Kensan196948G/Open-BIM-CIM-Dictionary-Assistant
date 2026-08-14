@@ -8,6 +8,7 @@
 import type {
   ConceptDetail,
   ConceptRelation,
+  DictionaryExportConcept,
   SearchQuery,
   SearchResultItem,
   SourceSummary,
@@ -34,6 +35,11 @@ export interface DictionaryRepository {
     publishedConcepts: number;
     sources: number;
   }>;
+  /**
+   * §17 公開辞書エクスポート（FR-308）: 全公開概念を詳細+関連付きで返す。
+   * ライセンス絞り込みは呼び出し側（route）で適用する。
+   */
+  exportPublishedConcepts(): Promise<DictionaryExportConcept[]>;
   /**
    * Readiness probe — false when the backing store is unreachable OR holds no
    * published content: an empty dictionary must not take traffic (both

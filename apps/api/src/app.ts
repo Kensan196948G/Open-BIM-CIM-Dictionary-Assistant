@@ -13,6 +13,7 @@ import { createAdminRoutes } from "./routes/admin";
 import { createAssistantRoutes } from "./routes/assistant";
 import { compareRoutes } from "./routes/compare";
 import { conceptRoutes } from "./routes/concepts";
+import { exportRoutes } from "./routes/export";
 import { healthRoutes } from "./routes/health";
 import { searchRoutes } from "./routes/search";
 import { sourceRoutes } from "./routes/sources";
@@ -130,6 +131,7 @@ export function createApp(repository: DictionaryRepository, options: AppOptions 
   app.route("/api/v1/assistant", createAssistantRoutes(aiUsageRecorder, tokenBudget));
   app.route("/api/v1/admin", createAdminRoutes(aiUsageRecorder, tokenBudget));
   app.route("/api/v1/sources", sourceRoutes);
+  app.route("/api/v1/export", exportRoutes);
   app.route("/api/v1/system", createSystemRoutes(auditLog));
   app.route("/api/v1/health", healthRoutes);
 

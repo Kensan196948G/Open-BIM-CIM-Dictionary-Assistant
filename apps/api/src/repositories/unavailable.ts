@@ -8,6 +8,7 @@
 import type {
   ConceptDetail,
   ConceptRelation,
+  DictionaryExportConcept,
   SourceSummary,
   SourceVersionSummary,
 } from "@obcda/contracts";
@@ -40,6 +41,10 @@ export class UnavailableDictionaryRepository implements DictionaryRepository {
   }
 
   async getSourceVersions(): Promise<SourceVersionSummary[] | null> {
+    return unavailable();
+  }
+
+  async exportPublishedConcepts(): Promise<DictionaryExportConcept[]> {
     return unavailable();
   }
 

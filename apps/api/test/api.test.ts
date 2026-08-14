@@ -4,6 +4,7 @@ import {
   CompareResponseSchema,
   ConceptDetailResponseSchema,
   ConceptRelationsResponseSchema,
+  DictionaryExportSchema,
   ErrorResponseSchema,
   SearchResponseSchema,
   SearchResultItemSchema,
@@ -351,6 +352,7 @@ describe("GET /api/v1/system/info", () => {
       getRelations: async () => null,
       listSources: async () => [],
       getSourceVersions: async () => null,
+      exportPublishedConcepts: async () => [],
       getStats: async () => ({ concepts: 1, publishedConcepts: 1, sources: 1 }),
       isReady: async () => true,
     };
@@ -383,5 +385,62 @@ describe("GET /api/v1/system/audit-events", () => {
     expect(res.status).toBe(400);
     const big = await getJson("/api/v1/system/audit-events?limit=501");
     expect(big.res.status).toBe(400);
+  });
+});
+
+describe("GET /api/v1/export/dictionary (§17 / FR-308)", () => {
+  it("exports all published concepts as a contract-valid JSON document", async () => {
+    const res = await app.request("/api/v1/export/dictionary");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("content-disposition")).toContain(".json");
+    const parsed = DictionaryExportSchema.parse(await res.json());
+    // every exported concept is published and carries source + relations
+    expect(parsed.concepts.length).toBeGreaterThanOrEqual(30);
+    expect(parsed.concepts.every((concept) => concept.status === "published")).toBe(
+      true,
+    );
+    expect(parsed.concepts.map((c) => c.canonicalKey)).toContain(
+      "ifc4x3:entity:IfcAlignment",
+    );
+    expect(parsed.concepts.map((c) => c.canonicalKey)).toContain(
+      "ifc4x3:pset:Pset_AlignmentCommon",
+    );
+    expect(parsed.concepts.map((c) => c.canonicalKey)).toContain(
+      "mlit_bimcim_r8:document_term:電子納品",
+    );
+    expect(parsed.sources.length).toBe(3);
+  });
+
+  it("filters exported concepts by license status", async () => {
+    const res = await app.request("/api/v1/export/dictionary?license=metadata_only");
+    expect(res.status).toBe(200);
+    const parsed = DictionaryExportSchema.parse(await res.json());
+    expect(parsed.concepts.length).toBeGreaterThan(0);
+    expect(
+      parsed.concepts.every(
+        (concept) => concept.source.licenseStatus === "metadata_only",
+      ),
+    ).toBe(true);
+  });
+
+  it("exports a BOM-prefixed CSV with a header row and one row per concept", async () => {
+    const res = await app.request("/api/v1/export/dictionary?format=csv");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+    // UTF-8 BOM is consumed by the text decoder — verify the raw bytes instead
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+    const text = new TextDecoder("utf-8").decode(bytes.slice(3));
+    const lines = text.split("\r\n").filter(Boolean);
+    expect(lines.length).toBeGreaterThanOrEqual(30);
+    expect(lines[0]).toContain("canonicalKey");
+    expect(lines[1]).toContain("ifc4x3:entity:IfcAlignment");
+  });
+
+  it("rejects unknown export formats", async () => {
+    const { res, body } = await getJson("/api/v1/export/dictionary?format=xlsx");
+    expect(res.status).toBe(400);
+    expect(ErrorResponseSchema.parse(body).error.code).toBe("VALIDATION_ERROR");
   });
 });
