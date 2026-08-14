@@ -6,8 +6,8 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "PR #40 merge済（セキュリティ強化+AI運用MVP・v0.4.0候補）→ 本PR: S4監査永続化+smoke/deployスクリプト → 残: 本番デプロイ(人間)・Neonスキーマ適用(人間)・#29/#25/AI-1",
-  "phase": "Verify",
+  "goal": "MVP評価ラウンド（2026-08-14）: 辞書43概念・エクスポートAPI・レビューキュー実API化・検索フィルタUI・web単体テスト・a11y改善を実装 → 次: 本番デプロイ(人間)・Neonスキーマ適用(人間)・IFC詳細(F1)・#29/#25/AI-1",
+  "phase": "Review",
   "stable": {
     "achieved": true,
     "note": "test/lint/typecheck/build/E2E/CI 全通過・レビュー指摘全対応・migration round-trip 検証済み"
@@ -41,8 +41,8 @@
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 206,
-    "e2e_count": 5,
+    "test_count": 225,
+    "e2e_count": 10,
     "security_critical": 0,
     "blocker_count": 0
   },
@@ -59,6 +59,11 @@
       "score_after": 68.5,
       "critical_open": 0,
       "pr": 40
+    },
+    "mvp_round_2026_08_14": {
+      "report": "docs/MVP_ASSESSMENT_2026-08-14.md",
+      "summary": "辞書 14→43 概念・公開辞書エクスポート(JSON/CSV)・差分レビューキュー実API化(S4監査連携)・検索フィルタUI・web単体テスト導入(9件)・引用コピー/aria-live a11y改善",
+      "verdict": "GO"
     }
   },
   "execution": {

@@ -254,14 +254,47 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 - シークレットは Cloudflare Secrets のみ（リポジトリ・ログ・チャット出力禁止）
 - ローテーション: 四半期ごと、または漏えい疑い時に即時
 - 依存更新: Dependabot 相当の監視は CI audit で代替中（強化は Issue 化）
-- 管理系 API（`/api/v1/admin/*` — AI設定の保存/削除/接続テスト含む）は Cloudflare Access 必須で公開経路と分離（設計 §9）。本番は Web/API 全体が Access 保護済みのため同一アクセス制御で運用
+- 管理系 API（`/api/v1/admin/*` — AI設定の保存/削除/接続テスト・レビューキュー判定含む）は Cloudflare Access 必須で公開経路と分離（設計 §9）。本番は Web/API 全体が Access 保護済みのため同一アクセス制御で運用
 
 ---
 
-## 📝 9. 変更履歴
+## 🧪 9. MVP / Prototype 向け公開 URL（2026-08-14 計画）
+
+関係者レビュー用に、本番と分離した MVP 専用 URL を以下の方針で用意する。
+
+| 環境 | URL（規定ドメイン `mirai-dx-platform.com`） | 用途 |
+| --- | --- | --- |
+| 本番 | `obcda.mirai-dx-platform.com`（既存） | 内部限定公開（v0.3.0・Access 保護） |
+| MVP / Prototype | **`mvp.obcda.mirai-dx-platform.com`**（新規） | 関係者レビュー・評価用（fixtures モード・ダミーデータ保持） |
+
+### デプロイ手順（Cloudflare 認証のある端末で人間が実行）
+
+```bash
+# 1) web ビルド（同一オリジン構成・環境変数は空値を明示）
+cd apps/web && VITE_API_BASE_URL= pnpm build
+
+# 2) Pages フルスタック worker を同一ディレクトリへ
+cd ../api && pnpm exec esbuild src/pages-worker.ts --bundle --format=esm --outfile=../web/dist/_worker.js --platform=browser --target=es2022
+echo '{"version":1,"include":["/*"],"exclude":[]}' > ../web/dist/_routes.json
+
+# 3) MVP 専用 Pages プロジェクト（例: obcda-mvp）へデプロイ
+cd ../web && npx wrangler pages deploy dist --project-name=obcda-mvp
+
+# 4) カスタムドメイン mvp.obcda.mirai-dx-platform.com を Pages プロジェクトへ割当
+#    （Cloudflare ダッシュボード → obcda-mvp → Custom domains）
+
+# 5) 動作確認: ホーム/検索(フィルタ)/詳細(引用コピー)/出典(エクスポート・レビューキュー)/監査ログ
+```
+
+> 注: 本ラウンドの環境では Cloudflare 認証（wrangler）が無くデプロイを実行できないため、上記は検証済み手順として文書化する。マージ後の CI（Pages preview）または認証付き端末での実行を以て URL を確定する。MVP は fixtures モード・ダミーデータ保持のまま運用し、実データ投入は行わない。
+
+---
+
+## 📝 10. 変更履歴
 
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
+| 2026-08-14 | 1.3 | MVP 評価ラウンド: 辞書 43 概念・公開辞書エクスポート(JSON/CSV)・レビューキュー実 API 化(S4 監査連携)・検索フィルタ UI・web 単体テスト・a11y 改善・MVP 用 URL 計画 |
 | 2026-08-02 | 1.2 | Anthropic AI設定（#14 相当）実装: 管理者画面からキー保存/接続テスト/リセット、サーバー側 `app_settings` 保存（migration 0002）・env 優先、AI質問の根拠付き回答 |
 | 2026-07-18 | 1.0 | 初版（MVP fixtures 構成のデプロイ・ロールバック・運用・障害対応） |
 | 2026-07-20 | 1.1 | #12 反映: Neon プロジェクト/preview ブランチ作成・migration/seed 実施、非本番 preview（Pages フルスタック）デプロイ記録、`VITE_API_BASE_URL` 名称統一 |

@@ -386,6 +386,9 @@ stateDiagram-v2
 | `CIM Dictionary Assistant 要件定義書.md` | 何を、なぜ、どこまで実現するか |
 | `CIM Dictionary Assistant 詳細設計仕様書.md` | どの構造・処理・API・DBで実装するか |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | デプロイ・ロールバック・運用・障害対応・リリース前チェックリスト |
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | 操作・デモ手順（5 分/15 分シナリオ・ダミーデータ構成・レビュー観点） |
+| [`docs/PROJECT_REVIEW_2026-08-04.md`](docs/PROJECT_REVIEW_2026-08-04.md) | 包括評価レポート（57.5→68.5/100・改善実装記録） |
+| [`docs/MVP_ASSESSMENT_2026-08-14.md`](docs/MVP_ASSESSMENT_2026-08-14.md) | MVP 評価ラウンド報告（実装済み/部分/未実装・P0-P3・判定） |
 | `README.md` | 利用者・開発者向けの入口 |
 
 ## 🗺️ 開発ロードマップ
@@ -406,8 +409,8 @@ flowchart LR
 | 構想 | ✅ |
 | 要件定義 | ✅ 初版 |
 | 詳細設計 | ✅ 初版 |
-| 実装 | ✅ MVP（fixtures 辞書）+ Neon/Drizzle repository（#12） |
-| 検証 | ✅ 単体・統合 168 件 + E2E 4 件（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
+| 実装 | ✅ MVP（fixtures 辞書 43 概念）+ Neon/Drizzle repository（#12）+ 公開辞書エクスポート + レビューキュー管理 API + 検索フィルタ UI |
+| 検証 | ✅ 単体 225 件（api 102・ingestion 57・domain 39・contracts 11・web 9・ui 7）+ E2E 10 本（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
 | 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.3.0**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）
@@ -417,10 +420,10 @@ flowchart LR
 | `packages/domain` | ✅ | ラベル正規化（NFC/NFKC・全半角・長音・中点・ハイフン吸収）、canonical key、IFC 版・和暦版パース。branch カバレッジ 90% 超 |
 | `packages/contracts` | ✅ | Zod による API 契約（検索・詳細・関連・出典・比較・エラー・AI 回答） |
 | `packages/db` | ✅ | Drizzle スキーマ 17 テーブル + `migrations/0001_init.sql` / `0002_ai_settings.sql`（up→down→up round-trip 検証済み） |
-| `apps/api` | ✅ | Hono API: 検索/詳細/関連/比較/AI回答(Anthropic 根拠付き・未設定/障害時フォールバック)/出典/版一覧/管理系 AI設定(状態/保存/接続テスト/リセット)/ヘルス + CORS・セキュリティヘッダー |
-| `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索/詳細/比較/学習/AI質問/出典管理/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E 5 spec |
+| `apps/api` | ✅ | Hono API: 検索(フィルタ対応)/詳細/関連/比較/AI回答(Anthropic 根拠付き・未設定/障害時フォールバック)/出典/版一覧/管理系(差分レビューキュー・AI設定・変更監査)/**辞書エクスポート(JSON/CSV)**/ヘルス + CORS・セキュリティヘッダー・レート制限・Access JWT 検証 |
+| `apps/web` | ✅ | Claude Design dc 適用のサイドバーシェル + 全 9 画面（ホーム/検索(フィルタ+ページネーション)/詳細(引用コピー)/比較/学習/AI質問(aria-live)/出典管理(レビューキュー+エクスポート)/監査ログ/設定 — React + Vite + Tailwind、WCAG 配慮）+ Playwright E2E 10 spec + Vitest 単体 9 件 |
 | `apps/ingestion` | ✅ | SourceAdapter 契約 + 取得ガード（SSRF/署名照合）+ §4.3 ガード適用 HTTP クライアント（redirect 再検証・レート制御・バックオフ）+ **BsddRestAdapter**（bSDD Dictionary/Class/Property 取得・正規化）+ 実行記録ポート（ingestion_runs/items 相当）+ dry-run CLI (#13) |
-| `fixtures` | ✅ | 公開サンプル辞書 14 概念・3 ソース |
+| `fixtures` | ✅ | 公開サンプル辞書 **43 概念**（IFC 4.3 エンティティ/Psets/Qto・国交省要領・openBIM/bSDD 用語・draft 3 件）・3 ソース — 全て架空/公開情報由来・個人情報なし |
 | CI | ✅ | GitHub Actions（format/lint/typecheck/test/build + E2E + 依存監査） |
 | デプロイ準備 | ✅ | `apps/api/wrangler.toml`・Pages 用 `_redirects`・[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 | Neon 接続 (#12) | ✅ | `NeonDictionaryRepository`（共有 CTE + ranking 共通化）+ seed スクリプト。Neon `preview` ブランチへ migration/seed 適用済み・統合スモーク 11 項目 PASS。preview 実機は `DATABASE_URL` 登録待ちで fixtures モード |
