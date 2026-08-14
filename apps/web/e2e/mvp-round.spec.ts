@@ -84,8 +84,9 @@ test("IFC detail shows schema, supertype and attributes table (FR-101〜105)", a
   await expect(page.getByRole("heading", { name: /IFC詳細/ })).toBeVisible();
   await expect(page.getByText("スキーマ: IFC4.3.2.0")).toBeVisible();
   await expect(page.getByText("種別: entity")).toBeVisible();
+  // 継承元リンク（関連する概念にも同名リンクがあるため .first() で解決）
   await expect(
-    page.getByRole("link", { name: "IfcLinearPositioningElement" }),
+    page.getByRole("link", { name: "IfcLinearPositioningElement" }).first(),
   ).toBeVisible();
   // attributes table with the explicit PredefinedType attribute
   await expect(page.getByText("PredefinedType").first()).toBeVisible();
