@@ -72,4 +72,17 @@ describe("lib/api — API クライアント（Q4）", () => {
       "license=metadata_only",
     );
   });
+
+  it("throws ApiError(CONTRACT_VIOLATION) when a 200 response violates the contract (Q4b)", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      // search 応答のはずが meta が欠けた不正形
+      jsonResponse({ data: [] }, 200),
+    );
+    const error = await searchConcepts({ q: "Ifc" }).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(ApiError);
+    if (error instanceof ApiError) {
+      expect(error.code).toBe("CONTRACT_VIOLATION");
+      expect(error.message).toContain("サーバー応答の形式が想定と異なります");
+    }
+  });
 });
