@@ -27,6 +27,16 @@ type LoadState =
     }
   | { kind: "error"; message: string; notFound: boolean };
 
+const IFC_TH =
+  "border-b border-line-soft bg-panel px-3 py-2 text-left text-[11px] font-semibold text-faint";
+const IFC_TD = "border-b border-line-soft px-3 py-2 align-top";
+
+const ATTRIBUTE_KIND_LABELS: Record<string, string> = {
+  explicit: "明示属性",
+  derived: "派生属性",
+  inverse: "逆属性",
+};
+
 function groupRelations(relations: ConceptRelation[]) {
   const groups: { type: string; label: string; items: ConceptRelation[] }[] = [];
   const byType = new Map<string, (typeof groups)[number]>();
@@ -184,7 +194,75 @@ export function ConceptDetailPage() {
       {detail.conceptType === "entity" && (
         <Card className="p-[18px]">
           <h2 className="m-0 text-[14px] font-semibold text-ink">🧩 IFC詳細</h2>
-          {inherits && (
+          {detail.ifc && (
+            <>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                <Chip>スキーマ: {detail.ifc.schemaVersion}</Chip>
+                <Chip>種別: {detail.ifc.memberKind}</Chip>
+                {detail.ifc.isAbstract && <Chip>抽象エンティティ</Chip>}
+              </div>
+              {detail.ifc.supertypeConceptId && detail.ifc.supertypeName && (
+                <p className="mt-2.5 mb-0 text-[13px] text-sub">
+                  継承元:{" "}
+                  <Link
+                    to={`/concepts/${detail.ifc.supertypeConceptId}`}
+                    className="cursor-pointer font-semibold text-link"
+                  >
+                    {detail.ifc.supertypeName}
+                  </Link>
+                </p>
+              )}
+              {detail.ifc.attributes.length > 0 && (
+                <div className="mt-3 overflow-auto">
+                  <table className="w-full border-collapse text-[12px]">
+                    <caption className="sr-only">IFC 属性一覧</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col" className={IFC_TH}>
+                          属性
+                        </th>
+                        <th scope="col" className={IFC_TH}>
+                          種別
+                        </th>
+                        <th scope="col" className={IFC_TH}>
+                          データ型
+                        </th>
+                        <th scope="col" className={IFC_TH}>
+                          必須
+                        </th>
+                        <th scope="col" className={IFC_TH}>
+                          定義
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.ifc.attributes.map((attribute) => (
+                        <tr key={`${attribute.attributeKind}:${attribute.name}`}>
+                          <td className={IFC_TD + " font-medium text-ink"}>
+                            {attribute.name}
+                          </td>
+                          <td className={IFC_TD + " text-sub"}>
+                            {ATTRIBUTE_KIND_LABELS[attribute.attributeKind] ??
+                              attribute.attributeKind}
+                          </td>
+                          <td className={IFC_TD + " font-mono text-sub"}>
+                            {attribute.dataType}
+                          </td>
+                          <td className={IFC_TD + " text-sub"}>
+                            {attribute.optional ? "任意" : "必須"}
+                          </td>
+                          <td className={IFC_TD + " text-faint"}>
+                            {attribute.definition ?? "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+          {!detail.ifc && inherits && (
             <p className="mt-2 mb-0 text-[13px] text-sub">
               継承元:{" "}
               <Link
@@ -195,9 +273,11 @@ export function ConceptDetailPage() {
               </Link>
             </p>
           )}
-          <p className="mt-2 mb-0 text-[12px] text-faint">
-            Pset / Qto: 本サンプルデータには未収録です（取り込み実装後に追加予定）。
-          </p>
+          {!detail.ifc && (
+            <p className="mt-2 mb-0 text-[12px] text-faint">
+              属性・Pset / Qto は取り込み後に収録予定です。
+            </p>
+          )}
         </Card>
       )}
 

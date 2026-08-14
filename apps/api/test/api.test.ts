@@ -135,6 +135,37 @@ describe("GET /api/v1/concepts/:id", () => {
     const malformed = await getJson("/api/v1/concepts/not-a-uuid");
     expect(malformed.res.status).toBe(400);
   });
+
+  it("returns IFC member details (schema, supertype, attributes) for entities (FR-101〜105)", async () => {
+    const { res, body } = await getJson(`/api/v1/concepts/${IFC_ALIGNMENT_ID}`);
+    expect(res.status).toBe(200);
+    const parsed = ConceptDetailResponseSchema.parse(body);
+    expect(parsed.data.ifc).toBeDefined();
+    expect(parsed.data.ifc?.schemaVersion).toBe("IFC4.3.2.0");
+    expect(parsed.data.ifc?.memberKind).toBe("entity");
+    expect(parsed.data.ifc?.isAbstract).toBe(false);
+    expect(parsed.data.ifc?.supertypeName).toBe("IfcLinearPositioningElement");
+    expect(parsed.data.ifc?.attributes.length).toBeGreaterThanOrEqual(1);
+    expect(parsed.data.ifc?.attributes[0]?.name).toBe("PredefinedType");
+    expect(parsed.data.ifc?.attributes[0]?.attributeKind).toBe("explicit");
+  });
+
+  it("omits the ifc block for non-IFC concepts", async () => {
+    const sources = SourcesResponseSchema.parse(
+      (await getJson("/api/v1/sources")).body,
+    );
+    // 電子納品（MLIT document_term）は IFC メンバーではない
+    const mlit = sources.data.find((s) => s.code === "MLIT_BIMCIM_R8");
+    const search = SearchResponseSchema.parse(
+      (await getJson(`/api/v1/search?q=${encodeURIComponent("電子納品")}`)).body,
+    );
+    const concept = search.data.find((item) => item.standardFamily === "MLIT_BIMCIM");
+    expect(concept).toBeDefined();
+    expect(mlit).toBeDefined();
+    const { body } = await getJson(`/api/v1/concepts/${concept!.id}`);
+    const parsed = ConceptDetailResponseSchema.parse(body);
+    expect(parsed.data.ifc).toBeUndefined();
+  });
 });
 
 describe("GET /api/v1/concepts/:id/relations", () => {

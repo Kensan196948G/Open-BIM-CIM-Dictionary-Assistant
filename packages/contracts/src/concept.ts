@@ -1,6 +1,8 @@
 import {
+  ATTRIBUTE_KINDS,
   CONCEPT_TYPES,
   CONCEPT_VERSION_STATUSES,
+  IFC_MEMBER_KINDS,
   LABEL_TYPES,
   LICENSE_STATUSES,
   RELATION_TYPES,
@@ -29,6 +31,28 @@ export const SourceRefSchema = z.object({
 });
 export type SourceRef = z.infer<typeof SourceRefSchema>;
 
+/** FR-104: IFC 属性（明示・派生・逆属性の別を持つ）。 */
+export const IfcAttributeSchema = z.object({
+  name: z.string(),
+  attributeKind: z.enum(ATTRIBUTE_KINDS),
+  dataType: z.string(),
+  optional: z.boolean(),
+  definition: z.string().nullable(),
+});
+export type IfcAttribute = z.infer<typeof IfcAttributeSchema>;
+
+/** FR-101〜105: IFC メンバー詳細（スキーマ版・種別・抽象性・継承元・属性）。 */
+export const IfcMemberSchema = z.object({
+  schemaVersion: z.string(),
+  memberKind: z.enum(IFC_MEMBER_KINDS),
+  isAbstract: z.boolean(),
+  /** 継承元エンティティ（存在すれば概念 id・名称を解決して返す）。 */
+  supertypeConceptId: z.uuid().nullable(),
+  supertypeName: z.string().nullable(),
+  attributes: z.array(IfcAttributeSchema),
+});
+export type IfcMember = z.infer<typeof IfcMemberSchema>;
+
 /** GET /api/v1/concepts/{id} response body (§7.2, §8.2 display order). */
 export const ConceptDetailSchema = z.object({
   id: z.uuid(),
@@ -45,6 +69,8 @@ export const ConceptDetailSchema = z.object({
   labels: z.array(TermLabelSchema),
   source: SourceRefSchema,
   externalUri: z.url().nullable(),
+  /** IFC エンティティ/Type 等のみ存在する（FR-101〜105・SCR-04）。 */
+  ifc: IfcMemberSchema.optional(),
 });
 export type ConceptDetail = z.infer<typeof ConceptDetailSchema>;
 

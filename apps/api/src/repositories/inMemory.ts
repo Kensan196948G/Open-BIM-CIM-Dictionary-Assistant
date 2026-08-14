@@ -66,6 +66,20 @@ export class InMemoryDictionaryRepository implements DictionaryRepository {
     if (!concept || concept.status !== "published") return null;
     const sourceRef = this.sourceVersionIndex.get(concept.sourceVersionId);
     if (!sourceRef) return null;
+    const ifc = concept.ifc
+      ? {
+          schemaVersion: concept.ifc.schemaVersion,
+          memberKind: concept.ifc.memberKind,
+          isAbstract: concept.ifc.isAbstract,
+          supertypeConceptId: concept.ifc.supertypeKey
+            ? (this.byKey.get(concept.ifc.supertypeKey)?.id ?? null)
+            : null,
+          supertypeName: concept.ifc.supertypeKey
+            ? (this.byKey.get(concept.ifc.supertypeKey)?.name ?? null)
+            : null,
+          attributes: concept.ifc.attributes,
+        }
+      : undefined;
     return {
       id: concept.id,
       canonicalKey: concept.canonicalKey,
@@ -93,6 +107,7 @@ export class InMemoryDictionaryRepository implements DictionaryRepository {
         retrievedAt: sourceRef.version.retrievedAt,
       },
       externalUri: concept.externalUri,
+      ...(ifc ? { ifc } : {}),
     };
   }
 
