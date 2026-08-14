@@ -74,3 +74,20 @@ test("search pagination appends the next page via cursor", async ({ page }) => {
     )
     .toBeGreaterThan(before);
 });
+
+test("IFC detail shows schema, supertype and attributes table (FR-101〜105)", async ({
+  page,
+}) => {
+  await page.goto("/search?q=IfcAlignment");
+  await page.getByRole("link", { name: "IfcAlignment", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/concepts\//);
+  await expect(page.getByRole("heading", { name: /IFC詳細/ })).toBeVisible();
+  await expect(page.getByText("スキーマ: IFC4.3.2.0")).toBeVisible();
+  await expect(page.getByText("種別: entity")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "IfcLinearPositioningElement" }),
+  ).toBeVisible();
+  // attributes table with the explicit PredefinedType attribute
+  await expect(page.getByText("PredefinedType").first()).toBeVisible();
+  await expect(page.getByText("明示属性")).toBeVisible();
+});
