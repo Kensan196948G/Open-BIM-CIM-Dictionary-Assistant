@@ -258,19 +258,30 @@ Cloudflare ダッシュボード → Pages → obcda-web → Deployments → 対
 
 ---
 
-## 🧪 9. MVP / Prototype 向け公開 URL（2026-08-14 計画）
+## 🧪 9. MVP / Prototype 向け公開 URL（2026-08-14 計画・**デプロイ済み**）
 
-関係者レビュー用に、本番と分離した MVP 専用 URL を以下の方針で用意する。
+関係者レビュー用に、本番と分離した MVP 専用 URL を用意する。
 
 | 環境 | URL（規定ドメイン `mirai-dx-platform.com`） | 用途 |
 | --- | --- | --- |
 | 本番 | `obcda.mirai-dx-platform.com`（既存） | 内部限定公開（v0.3.0・Access 保護） |
-| MVP / Prototype | **`mvp.obcda.mirai-dx-platform.com`**（新規） | 関係者レビュー・評価用（fixtures モード・ダミーデータ保持） |
+| MVP / Prototype | **`mvp.obcda.mirai-dx-platform.com`**（**稼働中**） | 関係者レビュー・評価用（fixtures モード・ダミーデータ 43 概念保持） |
 
-### デプロイ手順（Cloudflare 認証のある端末で人間が実行）
+### ✅ デプロイ実績（2026-08-14 実行）
+
+| 項目 | 値 |
+| --- | --- |
+| Pages プロジェクト | `obcda-mvp`（production branch: `main`） |
+| デプロイ ID | `836d72fd`（production） |
+| カスタムドメイン | `mvp.obcda.mirai-dx-platform.com` → CNAME `obcda-mvp.pages.dev`（proxied） |
+| 別名 | `https://obcda-mvp.pages.dev`（200 OK） |
+| 動作モード | fixtures モード（概念 43・公開 40・情報源 3） |
+| 実測 | ホーム 200 / 検索 / IFC 詳細（ifc ブロック）/ エクスポート CSV 200 / `/health/ready` ok |
+
+### デプロイ手順（再実行用・実地検証済み）
 
 ```bash
-# 1) worker バンドル生成（apps/api で — Pages 用エントリ。dry-run は認証不要・実地検証済み）
+# 1) worker バンドル生成（apps/api で — Pages 用エントリ。dry-run は認証不要）
 cd apps/api && mkdir -p /tmp/mvp-bundle && npx wrangler deploy src/pages-worker.ts --dry-run --outdir /tmp/mvp-bundle
 #    → /tmp/mvp-bundle/pages-worker.js が生成される（約 1.1MB）
 
@@ -283,16 +294,22 @@ cp /tmp/mvp-bundle/pages-worker.js /tmp/mvp-dist/_worker.js
 echo '{"version":1,"include":["/*"],"exclude":[]}' > /tmp/mvp-dist/_routes.json
 
 # 4) MVP 専用 Pages プロジェクト（例: obcda-mvp）へデプロイ
-cd ../web && npx wrangler pages deploy /tmp/mvp-dist --project-name=obcda-mvp
+#    ※ CLOUDFLARE_API_TOKEN が必要（Pages 編集権限）。プロジェクト作成権限のない
+#      read-only トークン（~/.bashrc のもの）では不可 — 作成権限のあるトークンを使用する
+cd ../web && npx wrangler pages project create obcda-mvp --production-branch=main
+npx wrangler pages deploy /tmp/mvp-dist --project-name=obcda-mvp --branch=main
 
-# 5) カスタムドメイン mvp.obcda.mirai-dx-platform.com を Pages プロジェクトへ割当
-#    （Cloudflare ダッシュボード → obcda-mvp → Custom domains）
+# 5) カスタムドメイン割当（wrangler 4.122 に pages domain コマンドがないため API を使用）
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/pages/projects/obcda-mvp/domains" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"mvp.obcda.mirai-dx-platform.com"}'
+#    + ゾーン DNS に CNAME を自動作成（なければ手動作成: mvp.obcda → obcda-mvp.pages.dev, proxied）
 
-# 6) 動作確認: ホーム/検索(フィルタ)/詳細(引用コピー)/出典(エクスポート・レビューキュー)/監査ログ
+# 6) 動作確認: ホーム/検索(フィルタ)/詳細(IFC+引用コピー)/出典(エクスポート・レビューキュー)/監査ログ
 ```
 
-> ✅ **検証済み（2026-08-14）**: 手順 1〜3 は本環境で実行済み（wrangler dry-run は認証不要で成功 — `_worker.js` 生成・web ビルド・`_routes.json` 構成を確認）。手順 4〜5 は Cloudflare 認証（`wrangler login` または `CLOUDFLARE_API_TOKEN`）が必要なため未実行。※ esbuild は apps/api の直接依存にないため `pnpm exec esbuild` では実行できない — 上記 dry-run 方式が正。
-> 注: 既存 preview（`https://preview.obcda-web.pages.dev`）は **Neon preview ブランチ接続済み・database モードで稼働中**（2026-07-24 設定・実測 200 OK）。MVP は fixtures モード・ダミーデータ保持のまま運用し、実データ投入は行わない。
+> ℹ️ **実運用メモ（2026-08-14）**: `~/.bashrc` の `CLOUDFLARE_API_TOKEN` は Pages 読み取り専用（プロジェクト作成・デプロイ不可）。作成権限のあるトークンは `DX-Project-Portfolio-Atlas/.env` にある同一アカウントのものを使用した。トークン値はどこにも表示していない。
+> 注: 既存 preview（`https://preview.obcda-web.pages.dev`）は fixtures モード（14 概念・旧ビルド）で稼働中。MVP は fixtures モード・ダミーデータ 43 概念を保持したまま運用し、実データ投入は行わない。
 
 ---
 
@@ -300,6 +317,7 @@ cd ../web && npx wrangler pages deploy /tmp/mvp-dist --project-name=obcda-mvp
 
 | 日付 | 版 | 内容 |
 | --- | --- | --- |
+| 2026-08-14 | 1.5 | **MVP URL 実デプロイ**: Pages `obcda-mvp`（deploy `836d72fd`）に `mvp.obcda.mirai-dx-platform.com` を割当・DNS CNAME 作成・全機能実測確認（43 概念・fixtures） |
 | 2026-08-14 | 1.4 | IFC 詳細（FR-101〜105）縦スライス実装: fixtures に ifc メタデータ（18 概念・属性/継承/抽象）・API 両実装・seed 拡張・詳細画面に属性表。MVP 用 URL 手順を dry-run 実地検証して修正 |
 | 2026-08-14 | 1.3 | MVP 評価ラウンド: 辞書 43 概念・公開辞書エクスポート(JSON/CSV)・レビューキュー実 API 化(S4 監査連携)・検索フィルタ UI・web 単体テスト・a11y 改善・MVP 用 URL 計画 |
 | 2026-08-02 | 1.2 | Anthropic AI設定（#14 相当）実装: 管理者画面からキー保存/接続テスト/リセット、サーバー側 `app_settings` 保存（migration 0002）・env 優先、AI質問の根拠付き回答 |

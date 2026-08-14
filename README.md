@@ -305,6 +305,7 @@ pnpm --filter @obcda/web test:e2e
 | --- | --- | --- |
 | Local | 開発・単体確認 | 公開fixture・一時データ |
 | Preview | Pull Request確認 | 専用DB branch・サンプル |
+| **MVP** | **関係者レビュー・評価** | **fixtures ダミー 43 概念** — `https://mvp.obcda.mirai-dx-platform.com` |
 | Staging | 結合・UAT | 公開データの検証コピー |
 | Production | 公開運用 | 承認済み公開辞書 |
 
@@ -411,6 +412,7 @@ flowchart LR
 | 詳細設計 | ✅ 初版 |
 | 実装 | ✅ MVP（fixtures 辞書 43 概念）+ Neon/Drizzle repository（#12）+ 公開辞書エクスポート + レビューキュー管理 API + 検索フィルタ UI + **IFC 詳細（属性・継承・スキーマ表示）** |
 | 検証 | ✅ 単体 227 件（api 104・ingestion 57・domain 39・contracts 11・web 9・ui 7）+ E2E 11 本（CI 実ブラウザ）/ CI 稼働 / migration up-down 検証済み + Neon preview ブランチ実適用・統合スモーク 11 項目 |
+| 公開 | 🧪 **MVP 稼働中** `https://mvp.obcda.mirai-dx-platform.com`（obcda-mvp Pages・fixtures 43 概念・2026-08-14）
 | 公開 | 🚀 **本番稼働中** `https://obcda.mirai-dx-platform.com`（**v0.3.0**・fixtures モード）— 🔐 **Cloudflare Access による内部限定公開**（2026-07-24〜・許可メンバーのみ）。別名 `obcda-web.pages.dev` は全パス 301 でカスタムドメインへ一本化 / 🧪 preview `https://preview.obcda-web.pages.dev` |
 
 ### 🧱 実装済みコンポーネント（2026-07-18 時点）

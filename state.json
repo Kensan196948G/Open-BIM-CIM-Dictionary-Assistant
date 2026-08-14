@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "MVP評価ラウンド第2弾（2026-08-14）: IFC詳細（FR-101〜105・属性/継承/スキーマ表）を縦スライス実装 → 次: 本番デプロイ(人間)・Neonスキーマ適用(人間)・#29/#25/AI-1",
+  "goal": "MVP URL デプロイ完了（mvp.obcda.mirai-dx-platform.com・obcda-mvp Pages・fixtures 43 概念）→ 次: 本番デプロイ(人間)・Neonスキーマ適用(人間)・#29/#25/AI-1",
   "phase": "Review",
   "stable": {
     "achieved": true,
@@ -35,6 +35,15 @@
       "type": "cloudflare_access_self_hosted",
       "scope": "obcda.mirai-dx-platform.com 全パス（内部限定公開・許可メンバーのみ・未認証は302）",
       "alias_canonicalized": "obcda-web.pages.dev は _worker.js（advanced mode）で全パス301→カスタムドメイン（v0.2.1・実測済み）。デプロイ毎の <hash>.pages.dev URL のみ301対象外（推測困難・残存リスクとして記録）"
+    },
+    "mvp_url": "https://mvp.obcda.mirai-dx-platform.com",
+    "mvp_url_alias": "https://obcda-mvp.pages.dev",
+    "mvp_deployment": {
+      "project": "obcda-mvp",
+      "deployment_id": "836d72fd",
+      "deployed_at": "2026-08-14",
+      "mode": "fixtures（ダミーデータ 43 概念保持）",
+      "verified": "ホーム 200 / 検索 / IFC 詳細 / エクスポート CSV / health/ready ok"
     }
   },
   "kpi": {
