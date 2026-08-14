@@ -7,6 +7,8 @@ import type {
   ConceptRelationsResponse,
   ErrorResponse,
   ResponseMeta,
+  ReviewDecisionResponse,
+  ReviewQueueResponse,
   SearchResponse,
   SearchResultItem,
   SourceVersionsResponse,
@@ -152,4 +154,36 @@ export function askAssistant(
     method: "POST",
     body: { question, explanationLevel },
   });
+}
+
+// ---------------------------------------------------------------------------
+// §17 公開辞書エクスポート（FR-308）
+// ---------------------------------------------------------------------------
+
+/** ダウンロードリンク用 URL（Content-Disposition: attachment を返す）。 */
+export function exportDictionaryUrl(format: "json" | "csv", license?: string): string {
+  const params = new URLSearchParams({ format });
+  if (license) params.set("license", license);
+  return `${API_BASE}/api/v1/export/dictionary?${params.toString()}`;
+}
+
+// ---------------------------------------------------------------------------
+// 差分レビューキュー（FR-303〜305・管理 API）
+// ---------------------------------------------------------------------------
+
+export function fetchReviewQueue(): Promise<ReviewQueueResponse> {
+  return request<ReviewQueueResponse>("/api/v1/admin/review-queue");
+}
+
+export function decideReview(
+  id: string,
+  decision: "approved" | "rejected",
+): Promise<ReviewDecisionResponse> {
+  return request<ReviewDecisionResponse>(
+    `/api/v1/admin/reviews/${encodeURIComponent(id)}/decision`,
+    {
+      method: "POST",
+      body: { decision },
+    },
+  );
 }

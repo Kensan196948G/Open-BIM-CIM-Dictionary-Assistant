@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import type {
+  ConceptDetail,
   ConceptDetailResponse,
   ConceptRelation,
   ConceptRelationsResponse,
@@ -247,7 +248,10 @@ export function ConceptDetailPage() {
       )}
 
       <Card className="p-[18px]">
-        <h2 className="mt-0 mb-2.5 text-[14px] font-semibold text-ink">🔗 出典</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="mt-0 mb-2.5 text-[14px] font-semibold text-ink">🔗 出典</h2>
+          <CitationCopyButton detail={detail} />
+        </div>
         <dl className="m-0 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-[13px] text-ink">
           <dt className="text-faint">発行主体</dt>
           <dd className="m-0">{detail.source.publisher}</dd>
@@ -271,5 +275,39 @@ export function ConceptDetailPage() {
         </dl>
       </Card>
     </article>
+  );
+}
+
+/**
+ * FR-009: 引用情報のワンクリックコピー。
+ * 「用語（版）— 発行主体・文書 — 原典 URL」形式でクリップボードへ。
+ */
+function CitationCopyButton({ detail }: { detail: ConceptDetail }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const citation = `「${detail.name}」— ${detail.standardFamily} ${detail.version}（${detail.source.publisher}・${detail.source.documentName}）\n${detail.source.url}`;
+    try {
+      await navigator.clipboard.writeText(citation);
+      setCopied(true);
+    } catch {
+      // clipboard API が使えない場合は selection ベースにフォールバック
+      const textarea = document.createElement("textarea");
+      textarea.value = citation;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
+    }
+    window.setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <GhostButton
+      type="button"
+      onClick={copy}
+      className="px-[11px] py-[5px] text-[12px] !text-sub"
+    >
+      {copied ? "✅ コピーしました" : "📋 引用をコピー"}
+    </GhostButton>
   );
 }

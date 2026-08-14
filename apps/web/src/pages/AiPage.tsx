@@ -125,7 +125,11 @@ export function AiPage() {
       )}
 
       {refused && (
-        <div className="rounded-[10px] border border-warn-line bg-warn-soft px-[18px] py-4 text-[13px] text-warn-deep">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-[10px] border border-warn-line bg-warn-soft px-[18px] py-4 text-[13px] text-warn-deep"
+        >
           {answered.answer.answer ||
             "根拠となる情報が見つかりませんでした。質問を具体的な用語名（例: IfcAlignment、属性情報）にして再度お試しください。"}
         </div>
@@ -134,7 +138,11 @@ export function AiPage() {
       {answered && !refused && answered.answer.answer && (
         <Card className="px-[18px] py-4">
           <div className="text-[12.5px] font-semibold text-faint">🤖 回答</div>
-          <p className="mt-2 mb-0 text-[13.5px] leading-[1.7] whitespace-pre-wrap text-ink">
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-2 mb-0 text-[13.5px] leading-[1.7] whitespace-pre-wrap text-ink"
+          >
             {answered.answer.answer}
           </p>
           {answered.answer.caveats.length > 0 && (
