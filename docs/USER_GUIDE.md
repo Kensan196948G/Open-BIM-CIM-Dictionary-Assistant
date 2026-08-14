@@ -13,7 +13,7 @@ PORT=18788 pnpm --filter @obcda/api dev
 API_PROXY_TARGET=http://localhost:18788 pnpm exec vite --port 4173 --strictPort
 ```
 
-ブラウザで `http://localhost:4173` を開く（Playwright E2E と同じ構成）。
+ブラウザで `http://localhost:4173` を開く（Playwright E2E と同じ構成）。スマホ幅（375px 等）ではサイドバーがドロワーになり、左上の ☰ から開きます。
 
 ## 🧪 5 分デモシナリオ（主要導線）
 

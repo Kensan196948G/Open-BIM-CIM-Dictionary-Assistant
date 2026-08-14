@@ -6,7 +6,7 @@
     "release_deadline": "2027-01-18",
     "phase_mode": "development"
   },
-  "goal": "MVP URL デプロイ完了（mvp.obcda.mirai-dx-platform.com・obcda-mvp Pages・fixtures 43 概念）→ 次: 本番デプロイ(人間)・Neonスキーマ適用(人間)・#29/#25/AI-1",
+  "goal": "最終ラウンド（2026-08-14）: レスポンシブ/取り込み永続化(#29)/web契約検証/MVP外形監視を実装 → 残: 本番デプロイ(人間)・Neon main(人間)・#25/AI-1",
   "phase": "Review",
   "stable": {
     "achieved": true,
@@ -50,8 +50,8 @@
     "success_rate_target": 0.9,
     "ci_success_rate": 1.0,
     "test_pass_rate": 1.0,
-    "test_count": 227,
-    "e2e_count": 11,
+    "test_count": 233,
+    "e2e_count": 12,
     "security_critical": 0,
     "blocker_count": 0
   },
