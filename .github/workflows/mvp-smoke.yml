@@ -1,0 +1,73 @@
+name: MVP Smoke (外形監視)
+
+# MVP 用 URL（https://mvp.obcda.mirai-dx-platform.com）の自動死活監視。
+# MVP は fixtures モードで公開（Access 不要）のため、未認証 smoke が成立する。
+# 本番（obcda.mirai-dx-platform.com）は Access 保護のため対象外（O1 は Access
+# Service Token 導入後に別途）。失敗時は Issue を自動起票する。
+
+on:
+  schedule:
+    # 毎時 0 分（UTC）— 過剰なポーリングを避ける
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    name: smoke mvp.obcda.mirai-dx-platform.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run smoke checks
+        id: smoke
+        env:
+          BASE_URL: https://mvp.obcda.mirai-dx-platform.com
+        run: |
+          set -euo pipefail
+          failures=""
+
+          check_http() {
+            local name="$1" url="$2"
+            local code
+            code="$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$url" || true)"
+            echo "$name: $code"
+            if [ "$code" != "200" ]; then failures="$failures\n- $name → HTTP $code ($url)"; fi
+          }
+
+          check_http "home"            "$BASE_URL/"
+          check_http "health/live"     "$BASE_URL/api/v1/health/live"
+          check_http "health/ready"    "$BASE_URL/api/v1/health/ready"
+          check_http "search"          "$BASE_URL/api/v1/search?q=IfcAlignment"
+          check_http "export-csv"      "$BASE_URL/api/v1/export/dictionary?format=csv"
+
+          if [ -n "$failures" ]; then
+            echo "::error::MVP smoke failed:$failures"
+            echo "failures<<EOF" >> "$GITHUB_OUTPUT"
+            printf '%b' "$failures" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "✅ all MVP smoke checks passed"
+
+      - name: Open issue on failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "🚨 MVP 外形監視: mvp.obcda.mirai-dx-platform.com で異常" \
+            --body "MVP smoke が失敗しました（${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}）。
+
+          ```
+          ${{ steps.smoke.outputs.failures }}
+          ```
+
+対応: Pages obcda-mvp のデプロイ状態・_worker.js バンドル・DNS（mvp.obcda → obcda-mvp.pages.dev）を確認してください。"
