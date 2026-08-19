@@ -1,0 +1,75 @@
+name: Deploy Production (Pages)
+
+# Production deploy of the obcda-web Pages project (DEPLOYMENT.md §3.5).
+# Manual trigger only — running this workflow IS the human release decision.
+# Requires the repository Actions secret CLOUDFLARE_API_TOKEN (Pages Write
+# on account 4f1e888469df7e0b896bb4e211b12633; the account id itself is
+# documented in the runbook and is not a secret).
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy-main" to confirm a PRODUCTION deploy'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: build + deploy obcda-web (production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Verify confirmation input
+        if: ${{ github.event.inputs.confirm != 'deploy-main' }}
+        run: |
+          echo '::error::confirmation input must be exactly "deploy-main"'
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Cloudflare credentials are configured
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo '::error::Actions secret CLOUDFLARE_API_TOKEN is not configured (Settings → Secrets and variables → Actions)'
+            exit 1
+          fi
+
+      - name: Build artifact + deploy to Pages production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 4f1e888469df7e0b896bb4e211b12633
+        run: ./scripts/deploy-pages.sh main
+
+      - name: Post-deploy smoke (authenticated, optional)
+        # Fails softly when the Access Service Token secrets are absent —
+        # the unauthenticated smoke inside deploy-pages.sh already ran.
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          if [ -n "${CF_ACCESS_CLIENT_ID}" ] && [ -n "${CF_ACCESS_CLIENT_SECRET}" ]; then
+            BASE_URL=https://obcda.mirai-dx-platform.com ./scripts/smoke.sh
+          else
+            echo "CF_ACCESS_CLIENT_ID/SECRET not configured — skipping authenticated smoke (expected 302 without them)"
+          fi
